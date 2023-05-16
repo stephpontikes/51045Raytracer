@@ -1,0 +1,3 @@
+C:/Users/spont/CLionProjects/MPCS51045 Raytracer/cmake-build-debug/CMakeFiles/MPCS51045_Raytracer.dir
+C:/Users/spont/CLionProjects/MPCS51045 Raytracer/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/spont/CLionProjects/MPCS51045 Raytracer/cmake-build-debug/CMakeFiles/rebuild_cache.dir
