@@ -1,3 +1,6 @@
+#ifndef GRAPHICS_H
+#define GRAPHICS_H
+
 #include <SDL3/SDL.h>
 
 #include <iostream>
@@ -25,7 +28,6 @@ class Graphics {
         isRunning = true;
 
         while (isRunning) {
-            
             while (SDL_PollEvent(&event)) {
                 handleEvent(&event);
             }
@@ -89,3 +91,5 @@ class Graphics {
     }
 };
 }  // namespace mpcs51045
+
+#endif
