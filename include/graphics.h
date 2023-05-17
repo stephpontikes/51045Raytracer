@@ -6,6 +6,8 @@
 #include <iostream>
 #include <memory>
 
+#include "image.h"
+
 using std::cout;
 using std::endl;
 
@@ -13,17 +15,38 @@ namespace mpcs51045 {
 
 class Graphics {
    public:
-    SDL_Window* window = nullptr;
-    SDL_Renderer* renderer = nullptr;
-    int width;
-    int height;
-    bool isRunning = false;
+    Graphics(int w, int h) {
+        width = w;
+        height = h;
+        isRunning = false;
+        window = nullptr;
+        renderer = nullptr;
 
-    Graphics(int w, int h) : width(w), height(h) {}
+        if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+            cout << "SDL could not be initialized: " << SDL_GetError() << endl;
+        } else {
+            cout << "SDL is ready" << endl;
+        }
+
+        window = SDL_CreateWindow("Press Q to Quit", width, height, 0);
+
+        if (window == NULL) {
+            return;
+        }
+        renderer = SDL_CreateRenderer(window, NULL, 0);
+
+        image.init(renderer, width, height);
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                double red = (static_cast<double>(x) / double(width)) * 255.0;
+                double green = (static_cast<double>(y) / double(height)) * 255.0;
+                image.setPixel(x, y, red, green, 0.0);
+            }
+        }
+    }
 
     void run() {
-        init();
-
         SDL_Event event;
         isRunning = true;
 
@@ -37,22 +60,7 @@ class Graphics {
         quit();
     }
 
-    void init() {
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-            cout << "SDL could not be initialized: " << SDL_GetError() << endl;
-        } else {
-            cout << "SDL is ready" << endl;
-        }
-
-        window = SDL_CreateWindow("Press Q to Quit", width, height, 0);
-
-        if (window != NULL) {
-            renderer = SDL_CreateRenderer(window, NULL, 0);
-        }
-    }
-
     void handleEvent(SDL_Event* event) {
-        // Handle each specific event
         if (event->type == SDL_EVENT_QUIT) {
             isRunning = false;
         }
@@ -80,6 +88,8 @@ class Graphics {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderClear(renderer);
 
+        image.display();
+
         SDL_RenderPresent(renderer);
     }
 
@@ -89,6 +99,14 @@ class Graphics {
         window = NULL;
         SDL_Quit();
     }
+
+   private:
+    SDL_Window* window = nullptr;
+    SDL_Renderer* renderer = nullptr;
+    int width;
+    int height;
+    bool isRunning = false;
+    Image image;
 };
 }  // namespace mpcs51045
 
