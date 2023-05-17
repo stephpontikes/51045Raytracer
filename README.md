@@ -14,4 +14,4 @@ cmake --build . --config Release --parallel
 sudo cmake --install . --config Release
 ```
 
-In C++ files, add `#include <SDL3.SDL.h>`
+In C++ files, add `#include <SDL3/SDL.h>`
