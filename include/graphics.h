@@ -28,7 +28,7 @@ class Graphics {
             cout << "SDL is ready" << endl;
         }
 
-        window = SDL_CreateWindow("Press Q to Quit", width, height, 0);
+        window = SDL_CreateWindow("Press Q to Quit", width, height, SDL_WINDOW_OPENGL);
 
         if (window == NULL) {
             return;
