@@ -42,5 +42,26 @@ struct concrete_factory<abstract_factory<AbstractTypes...>, ConcreteTypes...>
                               AbstractTypes, ConcreteTypes>... {
 };
 
+// Test Later, not sure if implementation is correct
+template <template <class, class> class M, typename Geometry, typename Material>
+struct mesh_creator {
+    unique_ptr<M<Geometry, Material>> doCreate(TT<Geometry> &&, TT<Material> &&) {
+        return make_unique<M<Geometry, Material>>();
+    }
+};
+
+template <template <class, class> typename M, typename Geometries, typename Materials>
+struct parallel_mesh_factory;
+
+template <template <class, class> typename M, typename... Ts, typename... Us>
+struct parallel_mesh_factory<M, tuple<Ts...>, tuple<Us...>>
+    : mesh_creator<M, Ts, Us>... {
+    // Possibly need to call doCreate from *this object... if so, why? ask
+    template <typename Geometry, typename Material>
+    std::unique_ptr<M<Geometry, Material>> create() {
+        return doCreate(TT<Geometry>(), TT<Material>());
+    }
+};
+
 }  // namespace mpcs51045
 #endif
