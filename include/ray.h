@@ -1,9 +1,15 @@
+#ifndef RAY_H
+#define RAY_H
+
+#include "IndentStream.h"
 #include "vector3.h"
 // bounce count, color, direction
 
 class Ray {
    public:
+    Ray(Vector3<double> d) : direction(d), bounce_count(0), color(255.0, 255.0, 255.0) {}
     Ray(Vector3<double> d, double bc, Vector3<double> c) : direction(d), bounce_count(bc), color(c) {}
+    Ray(const Ray&) = default;
     ~Ray() = default;
 
     Vector3<double> direction;
@@ -19,3 +25,16 @@ class Ray {
         color.z = (new_color.z + (bounce_count * color.z)) / (1 + bounce_count);
     }
 };
+
+std::ostream& operator<<(std::ostream& os, const Ray& r) {
+    IndentStream is{os};
+    is << "Ray(" << endl;
+    is << mpcs51045::indent << "Direction: " << r.direction << endl;
+    is << "Bounce Count: " << r.bounce_count << endl;
+    is << "Color: " << r.color << endl;
+    is << mpcs51045::unindent << ")";
+
+    return os;
+}
+
+#endif

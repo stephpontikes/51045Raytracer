@@ -10,7 +10,13 @@ template <Numeric T>
 struct Vector3 {
     Vector3() = default;
     Vector3(T const& _x, T const& _y, T const& _z) : x(_x), y(_y), z(_z) {}
-    Vector3(Vector3& v) : x(v.x), y(v.y), z(v.z) {}
+    Vector3(const Vector3& v) : x(v.x), y(v.y), z(v.z) {}
+
+    Vector3(const Vector3& v1, const Vector3& v2) {
+        x = v2.x - v1.x;
+        y = v2.y - v1.y;
+        z = v2.z - v1.z;
+    }
 
     ~Vector3() = default;
 
@@ -28,8 +34,14 @@ struct Vector3 {
     T z = 0;
 };
 
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const Vector3<T>& v) {
+    os << "<" << v.x << " " << v.y << " " << v.z << ">";
+    return os;
+}
+
 template <std::integral T>
-struct Vector3Int : Vector3<T> {
+struct Vector3<T> {
     void normalize() = delete;
 };
 
