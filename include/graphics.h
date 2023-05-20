@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "image.h"
+#include "scene.h"
 
 using std::cout;
 using std::endl;
@@ -37,13 +38,16 @@ class Graphics {
 
         image.init(renderer, width, height);
 
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                double red = (static_cast<double>(x) / double(width)) * 255.0;
-                double green = (static_cast<double>(y) / double(height)) * 255.0;
-                image.setPixel(x, y, red, green, 0.0);
-            }
-        }
+        Camera testCamera;
+        // testCamera.updateCameraGeometry();
+
+        auto screenCenter = testCamera.getCenter();
+        auto screenU = testCamera.getU();
+        auto screenV = testCamera.getV();
+
+        cout << "Screen Center: " << screenCenter << endl;
+        cout << "Screen U: " << screenU << endl;
+        cout << "Screen V: " << screenV << endl;
     }
 
     void run() {
@@ -88,6 +92,8 @@ class Graphics {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderClear(renderer);
 
+        scene.render(image);
+
         image.display();
 
         SDL_RenderPresent(renderer);
@@ -107,6 +113,7 @@ class Graphics {
     int height;
     bool isRunning = false;
     Image image;
+    Scene scene;
 };
 }  // namespace mpcs51045
 

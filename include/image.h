@@ -29,6 +29,14 @@ class Image {
         initTexture();
     }
 
+    int getWidth() {
+        return width;
+    }
+
+    int getHeight() {
+        return height;
+    }
+
     void setPixel(int const x, int const y, double const red,
                   double const green, double const blue) {
         rChannel.at(x).at(y) = red;

@@ -1,8 +1,12 @@
 #ifndef RAY_H
 #define RAY_H
 
+#include <iostream>
+
 #include "IndentStream.h"
 #include "vector3.h"
+
+using std::endl;
 // bounce count, color, direction
 
 class Ray {
@@ -27,7 +31,7 @@ class Ray {
 };
 
 std::ostream& operator<<(std::ostream& os, const Ray& r) {
-    IndentStream is{os};
+    mpcs51045::IndentStream is{os};
     is << "Ray(" << endl;
     is << mpcs51045::indent << "Direction: " << r.direction << endl;
     is << "Bounce Count: " << r.bounce_count << endl;
