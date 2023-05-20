@@ -4,6 +4,10 @@
 #include "ray.h"
 #include "vector3.h"
 
+using namespace mpcs51045;
+
+namespace mpcs51045 {
+
 class Camera {
    public:
     Camera() {
@@ -82,11 +86,16 @@ class Camera {
     // coordinate plane that points to a pixel
     // x and y are values in the U, V coordinate system related to the pixels
     // in [-1, 1]
-    Ray createRayFromCamera(double x, double y) {
+    bool createRay(double x, double y, Ray &cameraRay) {
         Vector3<double> temp = center + (u * x);
         Vector3<double> screenCoord = temp + (v * y);
 
-        return Ray{screenCoord - position};
+        Vector3<double> dir = screenCoord - position;
+        dir.normalize();
+
+        cameraRay.position = position;
+        cameraRay.direction = dir;
+        return true;
     }
 
     void updateCameraGeometry() {
@@ -117,5 +126,7 @@ class Camera {
     Vector3<double> v;
     Vector3<double> center;
 };
+
+}  // namespace mpcs51045
 
 #endif

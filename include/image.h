@@ -6,6 +6,8 @@
 #include <iterator>
 #include <vector>
 
+namespace mpcs51045 {
+
 using std::vector;
 
 class Image {
@@ -111,5 +113,7 @@ class Image {
     SDL_Renderer *renderer;
     SDL_Texture *texture;
 };
+
+}  // namespace mpcs51045
 
 #endif

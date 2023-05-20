@@ -3,6 +3,8 @@
 
 #include <cmath>
 
+namespace mpcs51045 {
+
 template <typename T>
 concept Numeric = (std::floating_point<T> || std::integral<T>);
 
@@ -29,7 +31,11 @@ struct Vector3 {
         z /= dist;
     }
 
-    static Vector3<T> cross(const Vector3<T>& u, const Vector3<T>& v) {
+    static T dot(Vector3<T> const &u, Vector3<T> const &v) {
+        return u.x * v.x + u.y * v.y + u.z * v.z;
+    }
+
+    static Vector3<T> cross(Vector3<T> const &u, Vector3<T> const &v) {
         Vector3<T> res{(u.y * v.z) - (u.z * v.y),
                        -((u.x * v.z) - (u.z * v.x)),
                        (u.x * v.y) - (u.y * v.x)};
@@ -37,7 +43,7 @@ struct Vector3 {
         return res;
     }
 
-    Vector3<T>& operator-=(const Vector3<T>& rhs) {
+    Vector3<T>& operator-=(Vector3<T> const &rhs) {
         this->x = this->x - rhs.x;  // This is the easy one
         this->y = this->y - rhs.y;
         this->z = this->z - rhs.z;
@@ -45,7 +51,7 @@ struct Vector3 {
         return *this;
     }
 
-    friend Vector3<T> operator-(Vector3<T> lhs, const Vector3<T>& rhs) {
+    friend Vector3<T> operator-(Vector3<T> lhs, Vector3<T> const &rhs) {
         lhs -= rhs;
         return lhs;
     }
@@ -58,16 +64,16 @@ struct Vector3 {
         return *this;
     }
 
-    friend Vector3<T> operator+(Vector3<T> lhs, const Vector3<T>& rhs) {
+    friend Vector3<T> operator+(Vector3<T> lhs, Vector3<T> const &rhs) {
         lhs += rhs;
         return lhs;
     }
 
-    friend Vector3<T> operator*(Numeric auto scalar, const Vector3<T>& rhs) {
+    friend Vector3<T> operator*(Numeric auto scalar, Vector3<T> const &rhs) {
         return Vector3<T>{rhs.x * scalar, rhs.y * scalar, rhs.z * scalar};
     }
 
-    friend Vector3<T> operator*(const Vector3<T>& lhs, Numeric auto scalar) {
+    friend Vector3<T> operator*(Vector3<T> const &lhs, Numeric auto scalar) {
         return scalar * lhs;
     }
 
@@ -77,7 +83,7 @@ struct Vector3 {
 };
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, const Vector3<T>& v) {
+std::ostream& operator<<(std::ostream& os, Vector3<T> const &v) {
     os << "<" << v.x << " " << v.y << " " << v.z << ">";
     return os;
 }
@@ -86,5 +92,7 @@ template <std::integral T>
 struct Vector3<T> {
     void normalize() = delete;
 };
+
+}
 
 #endif

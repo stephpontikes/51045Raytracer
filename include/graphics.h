@@ -38,16 +38,14 @@ class Graphics {
 
         image.init(renderer, width, height);
 
-        Camera testCamera;
-        // testCamera.updateCameraGeometry();
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderClear(renderer);
 
-        auto screenCenter = testCamera.getCenter();
-        auto screenU = testCamera.getU();
-        auto screenV = testCamera.getV();
+        scene.render(image);
 
-        cout << "Screen Center: " << screenCenter << endl;
-        cout << "Screen U: " << screenU << endl;
-        cout << "Screen V: " << screenV << endl;
+        image.display();
+
+        SDL_RenderPresent(renderer);        
     }
 
     void run() {
@@ -89,14 +87,14 @@ class Graphics {
     }
 
     void render() {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderClear(renderer);
+        // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        // SDL_RenderClear(renderer);
 
-        scene.render(image);
+        // scene.render(image);
 
-        image.display();
+        // image.display();
 
-        SDL_RenderPresent(renderer);
+        // SDL_RenderPresent(renderer);
     }
 
     void quit() {
@@ -115,6 +113,7 @@ class Graphics {
     Image image;
     Scene scene;
 };
+
 }  // namespace mpcs51045
 
 #endif

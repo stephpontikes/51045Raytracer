@@ -1,3 +1,6 @@
+#ifndef MATERIALS_H
+#define MATERIALS_H
+
 #include "factory.h"
 #include "vector3.h"
 
@@ -11,7 +14,9 @@ Glossiness
 
 // TODO: implement visitor pattern for materials (visit = ray bounce)
 
-using namespace mpcs51045;
+namespace mpcs51045 {
+
+    using std::make_unique;
 
 class Material {
    public:
@@ -51,3 +56,7 @@ class Matte : public Material {
 using AbstractMaterialFactory = mpcs51045::abstract_factory<Material>;
 using GlossyMaterialFactory = mpcs51045::concrete_factory<AbstractMaterialFactory, Glossy>;
 using MatteMaterialFactory = mpcs51045::concrete_factory<AbstractMaterialFactory, Matte>;
+
+}
+
+#endif
