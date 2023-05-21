@@ -79,6 +79,10 @@ struct Vector3 {
         return scalar * lhs;
     }
 
+    friend Vector3<T> operator/(Vector3<T> const& lhs, Numeric auto scalar) {
+        return Vector3<T>{lhs.x / scalar, lhs.y / scalar, lhs.z / scalar};
+    }
+
     T x = 0;
     T y = 0;
     T z = 0;
@@ -95,6 +99,9 @@ Vector3<T> operator*(Numeric auto scalar, Vector3<T> const& rhs);
 
 template <Numeric T>
 Vector3<T> operator*(Vector3<T> const& lhs, Numeric auto scalar);
+
+template <Numeric T>
+Vector3<T> operator/(Vector3<T> const& lhs, Numeric auto scalar);
 
 template <Numeric T>
 std::ostream& operator<<(std::ostream& os, Vector3<T> const& v) {
