@@ -15,7 +15,7 @@ class Ray {
    public:
     Vector3<double> position;
     Vector3<double> direction;
-    double bounce_count;
+    double bounce_count = 0;
     Vector3<double> color;
 
     Ray() = default;

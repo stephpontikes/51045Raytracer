@@ -11,9 +11,9 @@ namespace mpcs51045 {
 class Camera {
    public:
     Camera() {
-        position = Vector3<double>{0.0, 0.0, 0.0};
-        lookAtPosition = Vector3<double>{0.0, 0.0, -2.0};
-        up = Vector3<double>{0.0, 1.0, 0.0};
+        position = Vector3<double>{0.0, -10.0, 0.0};
+        lookAtPosition = Vector3<double>{0.0, 0.0, 0.0};
+        up = Vector3<double>{0.0, 0.0, 1.0};
         distFromScene = 1.0;
         horizSize = 1.0;
         aspectRatio = 1.0;
@@ -91,10 +91,10 @@ class Camera {
         Vector3<double> screenCoord = temp + (v * y);
 
         Vector3<double> dir = screenCoord - position;
-        dir.normalize();
 
         cameraRay.position = position;
         cameraRay.direction = dir;
+        cameraRay.bounce_count = 0;
         return true;
     }
 

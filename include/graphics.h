@@ -25,16 +25,23 @@ class Graphics {
 
         if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
             cout << "SDL could not be initialized: " << SDL_GetError() << endl;
+            return;
         } else {
             cout << "SDL is ready" << endl;
         }
 
         window = SDL_CreateWindow("Press Q to Quit", width, height, SDL_WINDOW_OPENGL);
+        int wdth, hght;
+        SDL_GetWindowSizeInPixels(window, &wdth, &hght);
 
         if (window == NULL) {
             return;
         }
         renderer = SDL_CreateRenderer(window, NULL, 0);
+        // Fixes high DPI issue with Mac Retina displays
+        SDL_SetRenderLogicalPresentation(renderer, wdth, hght,
+                                         SDL_LOGICAL_PRESENTATION_MATCH,
+                                         SDL_SCALEMODE_NEAREST);
 
         image.init(renderer, width, height);
 
@@ -45,7 +52,7 @@ class Graphics {
 
         image.display();
 
-        SDL_RenderPresent(renderer);        
+        SDL_RenderPresent(renderer);
     }
 
     void run() {

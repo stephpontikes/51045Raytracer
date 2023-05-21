@@ -20,6 +20,8 @@ struct Vector3 {
         z = v2.z - v1.z;
     }
 
+    Vector3& operator=(const Vector3&) = default;
+
     ~Vector3() = default;
 
     double norm() const { return sqrt(x * x + y * y + z * z); }
@@ -31,11 +33,11 @@ struct Vector3 {
         z /= dist;
     }
 
-    static T dot(Vector3<T> const &u, Vector3<T> const &v) {
+    static T dot(Vector3<T> const& u, Vector3<T> const& v) {
         return u.x * v.x + u.y * v.y + u.z * v.z;
     }
 
-    static Vector3<T> cross(Vector3<T> const &u, Vector3<T> const &v) {
+    static Vector3<T> cross(Vector3<T> const& u, Vector3<T> const& v) {
         Vector3<T> res{(u.y * v.z) - (u.z * v.y),
                        -((u.x * v.z) - (u.z * v.x)),
                        (u.x * v.y) - (u.y * v.x)};
@@ -43,7 +45,7 @@ struct Vector3 {
         return res;
     }
 
-    Vector3<T>& operator-=(Vector3<T> const &rhs) {
+    Vector3<T>& operator-=(Vector3<T> const& rhs) {
         this->x = this->x - rhs.x;  // This is the easy one
         this->y = this->y - rhs.y;
         this->z = this->z - rhs.z;
@@ -51,7 +53,7 @@ struct Vector3 {
         return *this;
     }
 
-    friend Vector3<T> operator-(Vector3<T> lhs, Vector3<T> const &rhs) {
+    friend Vector3<T> operator-(Vector3<T> lhs, Vector3<T> const& rhs) {
         lhs -= rhs;
         return lhs;
     }
@@ -64,16 +66,16 @@ struct Vector3 {
         return *this;
     }
 
-    friend Vector3<T> operator+(Vector3<T> lhs, Vector3<T> const &rhs) {
+    friend Vector3<T> operator+(Vector3<T> lhs, Vector3<T> const& rhs) {
         lhs += rhs;
         return lhs;
     }
 
-    friend Vector3<T> operator*(Numeric auto scalar, Vector3<T> const &rhs) {
+    friend Vector3<T> operator*(Numeric auto scalar, Vector3<T> const& rhs) {
         return Vector3<T>{rhs.x * scalar, rhs.y * scalar, rhs.z * scalar};
     }
 
-    friend Vector3<T> operator*(Vector3<T> const &lhs, Numeric auto scalar) {
+    friend Vector3<T> operator*(Vector3<T> const& lhs, Numeric auto scalar) {
         return scalar * lhs;
     }
 
@@ -82,8 +84,20 @@ struct Vector3 {
     T z = 0;
 };
 
-template <typename T>
-std::ostream& operator<<(std::ostream& os, Vector3<T> const &v) {
+template <Numeric T>
+Vector3<T> operator-(Vector3<T> lhs, Vector3<T> const& rhs);
+
+template <Numeric T>
+Vector3<T> operator+(Vector3<T> lhs, Vector3<T> const& rhs);
+
+template <Numeric T>
+Vector3<T> operator*(Numeric auto scalar, Vector3<T> const& rhs);
+
+template <Numeric T>
+Vector3<T> operator*(Vector3<T> const& lhs, Numeric auto scalar);
+
+template <Numeric T>
+std::ostream& operator<<(std::ostream& os, Vector3<T> const& v) {
     os << "<" << v.x << " " << v.y << " " << v.z << ">";
     return os;
 }
@@ -93,6 +107,6 @@ struct Vector3<T> {
     void normalize() = delete;
 };
 
-}
+}  // namespace mpcs51045
 
 #endif
