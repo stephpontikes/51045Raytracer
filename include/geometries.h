@@ -24,6 +24,8 @@ struct Geometry {
 class Sphere : public Geometry {
    public:
     Sphere(Vector3<double> c, double r) : Geometry(c), radius(r) {}
+    // temporary for testing, replace when static_cast removed
+    Sphere(Geometry g) : Geometry(g.coordinates), radius(1.0) {}
 
     ~Sphere() = default;
 

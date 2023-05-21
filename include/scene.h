@@ -34,12 +34,14 @@ class Scene {
 
         // unique_ptr<AbstractGeometryFactory> gFactory(make_unique<GeometryFactory>());
         // unique_ptr<AbstractMaterialFactory> mFactory(make_unique<MaterialFactory>());
-        // unique_ptr<Geometry> s{gFactory->create<Sphere>()};
-        // unique_ptr<Material> glossy{mFactory->create<Glossy>()};
-        // Mesh<Geometry, Material> mesh{*s.get(), *glossy.get()};
+        // auto s{gFactory->create<Sphere>()};
+        // auto glossy{mFactory->create<Glossy>()};
+        Sphere s{Vector3<double>{0.0, 0.0, 0.0}, 1.0};
+        Glossy g{Vector3<double>{255.0, 255.0, 255.0}};
+        Mesh<Geometry, Material> mesh{s, g};
         // unique_ptr<GlossyMeshFactory> meshFactory(make_unique<GlossyMeshFactory>());
-        // unique_ptr<Mesh<Geometry, Material>> mesh(meshFactory->create<Sphere, Glossy>());
-        // objects.push_back(make_shared<Mesh<Geometry, Material>>(mesh));
+        // auto mesh(meshFactory->create<Sphere, Glossy>());
+        objects.push_back(make_shared<Mesh<Geometry, Material>>(mesh));
     }
 
     bool render(Image& outputImage) {
@@ -64,32 +66,34 @@ class Scene {
 
                 camera.createRay(normX, normY, cameraRay);
 
-                // // Test for intersections with all objects (replace with visitor in future)
-                // for (auto current : objects) {
-                //     try {
-                //         Sphere& sphere = dynamic_cast<Sphere&>(current->geometry);
-                //         hitData = sphereIntersect(cameraRay, sphere);
-                //     } catch (std::bad_cast const& e) {
-                //         continue;
-                //     }
-                // }
-
-                hitData = sphereIntersect(cameraRay, sphere);
-                intersectPoint = hitData.hitPoint;
-
-                if (hitData.didHit) {
-                    double dist = (intersectPoint - cameraRay.position).norm();
-                    if (dist > maxDist) {
-                        maxDist = dist;
+                // Test for intersections with all objects (replace with visitor in future)
+                for (auto current : objects) {
+                    try {
+                        auto m = static_cast<Mesh<Geometry, Material>>(*current.get());
+                        auto sphere = static_cast<Sphere>(m.geometry);
+                        hitData = sphereIntersect(cameraRay, sphere);
+                    } catch (std::bad_cast const& e) {
+                        cout << "Failed cast" << endl;
+                        continue;
                     }
 
-                    if (dist < minDist) {
-                        minDist = dist;
-                    }
+                    // hitData = sphereIntersect(cameraRay, sphere);
+                    intersectPoint = hitData.hitPoint;
 
-                    outputImage.setPixel(x, y, 255.0 - ((dist - 9.0) / 0.94605) * 255.0, 0.0, 0.0);
-                } else {
-                    outputImage.setPixel(x, y, 0.0, 0.0, 0.0);
+                    if (hitData.didHit) {
+                        double dist = (intersectPoint - cameraRay.position).norm();
+                        if (dist > maxDist) {
+                            maxDist = dist;
+                        }
+
+                        if (dist < minDist) {
+                            minDist = dist;
+                        }
+
+                        outputImage.setPixel(x, y, 255.0 - ((dist - 9.0) / 0.94605) * 255.0, 0.0, 0.0);
+                    } else {
+                        outputImage.setPixel(x, y, 0.0, 0.0, 0.0);
+                    }
                 }
             }
         }
@@ -99,8 +103,8 @@ class Scene {
 
    private:
     Camera camera;
-    // std::vector<shared_ptr<Mesh<Geometry, Material>>> objects;
-    Sphere sphere{Vector3<double>{0.0, 0.0, 0.0}, 1.0};
+    std::vector<shared_ptr<Mesh<Geometry, Material>>> objects;
+    // Sphere sphere{Vector3<double>{0.0, 0.0, 0.0}, 1.0};
 };
 
 }  // namespace mpcs51045
