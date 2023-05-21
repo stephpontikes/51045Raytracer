@@ -3,6 +3,7 @@
 
 #include "image.h"
 #include "camera.h"
+#include "mesh.h"
 #include "hit.h"
 
 namespace mpcs51045 {
@@ -65,7 +66,7 @@ class Scene {
 
     private:
         Camera camera;
-        Sphere sphere;
+        std::vector<Mesh> objects;
 };
 
 }  // namespace mpcs51045

@@ -2,7 +2,7 @@
 #include <memory>
 
 #include "camera.h"
-#include "graphics.h"
+// #include "graphics.h"
 #include "materials.h"
 #include "ray.h"
 
@@ -31,9 +31,9 @@ int main() {
     //     break;
     // }
 
-    unique_ptr<Graphics> graphics = make_unique<Graphics>(windowWidth,
-                                                          windowHeight);
-    graphics->run();
+    // unique_ptr<Graphics> graphics = make_unique<Graphics>(windowWidth,
+    //                                                       windowHeight);
+    // graphics->run();
 
     return 0;
 }
