@@ -35,7 +35,7 @@ class Triangle : public Geometry {
    public:
     Triangle() = default;
 
-    Triangle(Vector3<double> const& pos, Vector3<double> _v1, Vector3<double> _v2, Vector3<double> _v3, Material& m)
+    Triangle(Vector3<double> const& pos, Vector3<double> _v1, Vector3<double> _v2, Vector3<double> _v3)
         : Geometry(pos), v1(_v1 + pos), v2(_v2 + pos), v3(_v3 + pos) {}
 
     ~Triangle() = default;
