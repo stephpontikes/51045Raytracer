@@ -14,49 +14,43 @@ Glossiness
 
 // TODO: implement visitor pattern for materials (visit = ray bounce)
 
-namespace mpcs51045
-{
+namespace mpcs51045 {
 
-    using std::make_unique;
+using std::make_unique;
 
-    class Material
-    {
-    public:
-        Material(Vector3<double> const &c) : mat_color(c) {}
-        virtual ~Material() = default;
+class Material {
+   public:
+    Material(Vector3<double> const &c) : mat_color(c) {}
+    virtual ~Material() = default;
 
-        virtual double reflectivity();
-        virtual double luminosity();
-        Vector3<double> color() { return mat_color; }
+    virtual double reflectivity();
+    virtual double luminosity();
+    Vector3<double> color() { return mat_color; }
 
-    private:
-        Vector3<double> mat_color;
-    };
+   private:
+    Vector3<double> mat_color;
+};
 
-    class Glossy : public Material
-    {
-    public:
-        Glossy() = default;
-        Glossy(Vector3<double> c) : Material(c) {}
+class Glossy : public Material {
+   public:
+    Glossy(Vector3<double> c) : Material(c) {}
 
-        double reflectivity() { return 0.9; }
-        double luminosity() { return 0; }
-    };
+    double reflectivity() { return 0.9; }
+    double luminosity() { return 0; }
+};
 
-    class Matte : public Material
-    {
-    public:
-        Matte() = default;
-        Matte(Vector3<double> c) : Material(c) {}
+class Matte : public Material {
+   public:
+    Matte(Vector3<double> c) : Material(c) {}
 
-        double reflectivity() { return 0.1; }
-        double luminosity() { return 0; }
-    };
+    double reflectivity() { return 0.1; }
+    double luminosity() { return 0; }
+};
 
-    using AbstractMaterialFactory = mpcs51045::abstract_factory<Material>;
-    using GlossyMaterialFactory = mpcs51045::concrete_factory<AbstractMaterialFactory, Glossy>;
-    using MatteMaterialFactory = mpcs51045::concrete_factory<AbstractMaterialFactory, Matte>;
+using AbstractMaterialFactory = mpcs51045::abstract_factory<Material>;
+using MaterialFactory = mpcs51045::concrete_factory<AbstractMaterialFactory,
+                                                    Glossy, Matte>;
 
-}
+}  // namespace mpcs51045
 
 #endif

@@ -2,27 +2,44 @@
 #define SCENE_H
 
 #include <iostream>
+#include <memory>
+#include <vector>
 
 #include "camera.h"
 #include "hit.h"
 #include "image.h"
 #include "mesh.h"
 
+using namespace mpcs51045;
+
 namespace mpcs51045 {
 
 using std::cout;
 using std::endl;
+using std::make_shared;
+using std::make_unique;
+using std::shared_ptr;
+using std::unique_ptr;
+using std::vector;
 
 class Scene {
    public:
     Scene() {
-        // sphere = Sphere{Vector3<double>{0.0, 0.0, 0.0}, 1.0};
         camera.setPosition(Vector3<double>{0.0, -10.0, 0.0});
         camera.setLookAtPosition(Vector3<double>{0.0, 0.0, 0.0});
         camera.setUp(Vector3<double>{0.0, 0.0, 1.0});
         camera.setHorizontalSize(0.25);
         camera.setAspectRatio(16.0 / 9.0);
         camera.updateCameraGeometry();
+
+        // unique_ptr<AbstractGeometryFactory> gFactory(make_unique<GeometryFactory>());
+        // unique_ptr<AbstractMaterialFactory> mFactory(make_unique<MaterialFactory>());
+        // unique_ptr<Geometry> s{gFactory->create<Sphere>()};
+        // unique_ptr<Material> glossy{mFactory->create<Glossy>()};
+        // Mesh<Geometry, Material> mesh{*s.get(), *glossy.get()};
+        // unique_ptr<GlossyMeshFactory> meshFactory(make_unique<GlossyMeshFactory>());
+        // unique_ptr<Mesh<Geometry, Material>> mesh(meshFactory->create<Sphere, Glossy>());
+        // objects.push_back(make_shared<Mesh<Geometry, Material>>(mesh));
     }
 
     bool render(Image& outputImage) {
@@ -46,6 +63,16 @@ class Scene {
                 double normY = static_cast<double>(y * yFact - 1.0);
 
                 camera.createRay(normX, normY, cameraRay);
+
+                // // Test for intersections with all objects (replace with visitor in future)
+                // for (auto current : objects) {
+                //     try {
+                //         Sphere& sphere = dynamic_cast<Sphere&>(current->geometry);
+                //         hitData = sphereIntersect(cameraRay, sphere);
+                //     } catch (std::bad_cast const& e) {
+                //         continue;
+                //     }
+                // }
 
                 hitData = sphereIntersect(cameraRay, sphere);
                 intersectPoint = hitData.hitPoint;
@@ -72,8 +99,8 @@ class Scene {
 
    private:
     Camera camera;
+    // std::vector<shared_ptr<Mesh<Geometry, Material>>> objects;
     Sphere sphere{Vector3<double>{0.0, 0.0, 0.0}, 1.0};
-    // std::vector<Mesh> objects;
 };
 
 }  // namespace mpcs51045
