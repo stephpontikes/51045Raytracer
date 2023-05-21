@@ -15,3 +15,12 @@ sudo cmake --install . --config Release
 ```
 
 In C++ files, add `#include <SDL3/SDL.h>`
+
+## Running CMake
+
+```{bash}
+cmake CMakeLists.txt -B build
+cd build
+make
+./MPCS51045_Raytracer
+```
