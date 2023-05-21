@@ -16,15 +16,13 @@ Glossiness
 
 namespace mpcs51045 {
 
-using std::make_unique;
-
 class Material {
    public:
     Material(Vector3<double> const &c) : mat_color(c) {}
     virtual ~Material() = default;
 
-    virtual double reflectivity() { return 0.0; };
-    virtual double luminosity() { return 0.0; };
+    virtual double reflectivity() { return 0.0; }
+    virtual double luminosity() { return 0.0; }
     Vector3<double> color() { return mat_color; }
 
    private:
