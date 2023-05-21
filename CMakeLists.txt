@@ -3,7 +3,6 @@ project(MPCS51045_Raytracer)
 
 set(CMAKE_CXX_STANDARD 20)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl3)
-message("${CMAKE_CURRENT_SOURCE_DIR}")
 
 file(GLOB CPP_SOURCE "${PROJECT_SOURCE_DIR}/src/*.cpp")
 include_directories("${PROJECT_SOURCE_DIR}/include")
