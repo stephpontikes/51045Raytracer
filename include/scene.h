@@ -16,7 +16,7 @@ using std::endl;
 class Scene {
    public:
     Scene() {
-        sphere = Sphere{Vector3<double>{0.0, 0.0, 0.0}, 1.0, nullptr};
+        // sphere = Sphere{Vector3<double>{0.0, 0.0, 0.0}, 1.0};
         camera.setPosition(Vector3<double>{0.0, -10.0, 0.0});
         camera.setLookAtPosition(Vector3<double>{0.0, 0.0, 0.0});
         camera.setUp(Vector3<double>{0.0, 0.0, 1.0});
@@ -72,7 +72,7 @@ class Scene {
 
    private:
     Camera camera;
-    Sphere sphere;
+    Sphere sphere{Vector3<double>{0.0, 0.0, 0.0}, 1.0};
     // std::vector<Mesh> objects;
 };
 

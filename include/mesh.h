@@ -5,13 +5,13 @@
 #include "materials.h"
 
 namespace mpcs51045 {
-    template<typename Geometry, typename Material>
-    struct Mesh {
-        Mesh(Geometry const& g, Material const& m) : geometry(g), material(m) {}
+template <typename Geometry, typename Material>
+struct Mesh {
+    Mesh(Geometry const& g, Material const& m) : geometry(g), material(m) {}
 
-        Geometry geometry;
-        Material material;
-    };
-}
+    Geometry geometry;
+    Material material;
+};
+}  // namespace mpcs51045
 
 #endif

@@ -3,8 +3,11 @@
 
 #include <memory>
 
+#include "geometries.h"
 #include "materials.h"
 #include "vector3.h"
+
+using namespace mpcs51045;
 
 namespace mpcs51045 {
 
@@ -17,20 +20,10 @@ struct HitData {
     Vector3<double> hitNormal;
 };
 
-class Sphere {
-   public:
-    Sphere() : center(Vector3<double>{0.0, 0.0, 0.0}), radius(1.0), material(nullptr) {}
-    Sphere(Vector3<double> c, double r, unique_ptr<Material> m) : center(c), radius(r), material(std::move(m)) {}
-
-    Vector3<double> center;
-    double radius;
-    unique_ptr<Material> material;
-};
-
 HitData sphereIntersect(Ray const& ray, Sphere const& sphere) {
     HitData result;
 
-    Vector3<double> offsetRayPos = ray.position - sphere.center;
+    Vector3<double> offsetRayPos = ray.position - sphere.coordinates;
     Vector3<double> dir = ray.direction;
     dir.normalize();
 
@@ -60,7 +53,7 @@ HitData sphereIntersect(Ray const& ray, Sphere const& sphere) {
         }
 
         result.hitPoint = ray.position + (dir * result.distance);
-        result.hitNormal = result.hitPoint - sphere.center;
+        result.hitNormal = result.hitPoint - sphere.coordinates;
         result.hitNormal.normalize();
     } else {
         result.didHit = false;
