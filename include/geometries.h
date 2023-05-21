@@ -1,7 +1,7 @@
 #include "materials.h"
 #include "vector3.h"
 
-
+namespace mpcs51045 {
 // Edited geometry class to be a base class containing only a coordinate
 struct Geometry {
     Geometry() = default;
@@ -65,6 +65,5 @@ public:
     // use overloading/type tags in base classes to get proper onhit behavior for each geometry
     // discuss w logan, possibly better design philosophies exist. but this uses advanced variadics
     std::vector<unique_ptr<Geometry>> geometries;
+};
 }
-
-class 
