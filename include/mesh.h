@@ -12,6 +12,10 @@ struct Mesh {
     Geometry geometry;
     Material material;
 };
+
+using GlossyMeshFactory = parallel_mesh_factory<Mesh, tuple<Sphere, Triangle>, tuple<Glossy, Glossy>>;
+using MatteMeshFactory = parallel_mesh_factory<Mesh, tuple<Sphere, Triangle>, tuple<Matte, Matte>>;
+
 }  // namespace mpcs51045
 
 #endif

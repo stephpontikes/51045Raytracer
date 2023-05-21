@@ -6,6 +6,8 @@ using std::make_unique;
 using std::tuple;
 using std::unique_ptr;
 
+using namespace mpcs51045;
+
 namespace mpcs51045 {
 template <typename T>
 struct TT {
@@ -62,9 +64,6 @@ struct parallel_mesh_factory<M, tuple<Ts...>, tuple<Us...>>
         return doCreate(TT<Geometry>(), TT<Material>());
     }
 };
-
-// using GlossyMeshFactory = parallel_mesh_factory<Mesh, tuple<Sphere, Triangle>, tuple<Glossy, Glossy>>;
-// using MatteMeshFactory = parallel_mesh_factory<Mesh, tuple<Sphere, Triangle>, tuple<Matte, Matte>>;
 
 }  // namespace mpcs51045
 
