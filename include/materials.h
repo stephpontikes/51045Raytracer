@@ -34,7 +34,7 @@ class Glossy : public Material {
     Glossy(Vector3<double> c) : Material(c) {}
 
     double reflectivity() { return 0.9; }
-    double luminosity() { return 0; }
+    double luminosity() { return 0.0; }
 };
 
 class Matte : public Material {
@@ -42,7 +42,15 @@ class Matte : public Material {
     Matte(Vector3<double> c) : Material(c) {}
 
     double reflectivity() { return 0.1; }
-    double luminosity() { return 0; }
+    double luminosity() { return 0.0; }
+};
+
+class Light : public Material {
+   public:
+    Light(Vector3<double> c) : Material(c) {}
+
+    double reflectivity() { return 0.0; }
+    double luminosity() { return 10.0; }
 };
 
 using AbstractMaterialFactory = mpcs51045::abstract_factory<Material>;
