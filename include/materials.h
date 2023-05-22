@@ -57,6 +57,8 @@ using AbstractMaterialFactory = mpcs51045::abstract_factory<Material>;
 using MaterialFactory = mpcs51045::concrete_factory<AbstractMaterialFactory,
                                                     Glossy, Matte>;
 
+using material_types = tuple<Material, Glossy, Matte>;                                                   
+
 }  // namespace mpcs51045
 
 #endif

@@ -2,6 +2,7 @@
 #define FACTORY_H
 #include <memory>
 #include <tuple>
+
 using std::make_unique;
 using std::tuple;
 using std::unique_ptr;
@@ -73,6 +74,7 @@ struct parallel_mesh_factory : public mesh_creator<T, M, Ts>... {
         return this->doCreate(TT<G>(), TT<M>(), color, std::forward<Us>(us)...);
     }
 };
+
 
 }  // namespace mpcs51045
 
