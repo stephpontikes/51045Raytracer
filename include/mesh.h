@@ -12,17 +12,27 @@ using std::negation_v;
 
 namespace mpcs51045 {
 template <typename G, typename M>
-    requires is_base_of_v<Geometry, G> &&
-             is_base_of_v<Material, M>
+// requires (is_base_of_v<Geometry, G> &&
+//             is_base_of_v<Material, M>)
 struct Mesh {
-    Mesh(G const& g, Light const& m) : geometry(g), material(m) {}
+    template<typename... Ts>
+    Mesh(Vector3<double> const& color, Ts&&... ts) {
+        geometry = make_unique<G>(std::forward<Ts>(ts)...);
+        material = make_unique<M>(color);
+    }
 
-    G geometry;
-    Light material;
+    // Mesh(G const& g, Light const& m) : geometry(g), material(m) {}
+
+
+
+    std::unique_ptr<Geometry> geometry;
+    std::unique_ptr<Material> material;
 };
 
-using GlossyMeshFactory = parallel_mesh_factory<Mesh, tuple<Sphere, Triangle>, Glossy>;
-using MatteMeshFactory = parallel_mesh_factory<Mesh, tuple<Sphere, Triangle>, Glossy>;
+
+
+using GlossyMeshFactory = parallel_mesh_factory<Mesh, Glossy, Sphere(Vector3<double>, double), Triangle>;
+using MatteMeshFactory = parallel_mesh_factory<Mesh, Matte, Sphere(Vector3<double>, double), Triangle(Vector3<double>, Vector3<double>, Vector3<double>)>;
 
 }  // namespace mpcs51045
 

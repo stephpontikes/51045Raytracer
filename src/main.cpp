@@ -1,11 +1,12 @@
 #include <iostream>
 #include <memory>
 
-#include "camera.h"
-#include "graphics.h"
+#include "vector3.h"
+// #include "camera.h"
+// #include "graphics.h"
 #include "factory.h"
-// #include "materials.h"
-#include "ray.h"
+#include "mesh.h"
+// #include "ray.h"
 
 using std::cout;
 using std::endl;
@@ -23,7 +24,8 @@ int main() {
     // graphics->run();
 
     unique_ptr<GlossyMeshFactory> gmf = make_unique<GlossyMeshFactory>();
-    auto gs = gmf->create<Sphere>();
+    auto gs = gmf->create<Triangle>(Vector3<double>(30.0, 40.0, 50.0));
+    std::cout << gs->geometry->coordinates << std::endl;
 
 
     return 0;

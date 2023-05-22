@@ -20,7 +20,6 @@ struct Geometry {
 
 // Concrete geometries now inherit from Geometry base class
 
-// removed material data member
 class Sphere : public Geometry {
    public:
     Sphere(Vector3<double> c, double r) : Geometry(c), radius(r) {}
