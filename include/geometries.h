@@ -15,6 +15,8 @@ struct Geometry {
 
     virtual ~Geometry() = default;
 
+    virtual std::unique_ptr<Geometry> clone() const = 0;
+
     Vector3<double> coordinates;
 };
 
@@ -24,9 +26,13 @@ class Sphere : public Geometry {
    public:
     Sphere(Vector3<double> c, double r) : Geometry(c), radius(r) {}
     // temporary for testing, replace when static_cast removed
-    Sphere(Geometry g) : Geometry(g.coordinates), radius(1.0) {}
+    Sphere(Geometry& g) : Geometry(g.coordinates), radius(1.0) {}
 
     ~Sphere() = default;
+
+    virtual std::unique_ptr<Geometry> clone() const override {
+        return std::make_unique<Sphere>(*this);
+    }
 
     double radius;
 };
@@ -40,6 +46,10 @@ class Triangle : public Geometry {
         : Geometry(pos), v1(_v1 + pos), v2(_v2 + pos), v3(_v3 + pos) {}
 
     ~Triangle() = default;
+
+    virtual std::unique_ptr<Geometry> clone() const override {
+        return std::make_unique<Triangle>(*this);
+    }
 
     void setPosition(Vector3<double> const& pos) {
         v1 += pos;

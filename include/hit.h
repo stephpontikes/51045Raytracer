@@ -23,13 +23,15 @@ struct HitData {
     Vector3<double> hitNormal;
 };
 
-HitData sphereIntersect(Ray const& ray, Sphere const& sphere) {
+HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
     HitData result;
+    Sphere sphere = *dynamic_cast<Sphere*>(geom.get());
 
     Vector3<double> offsetRayPos = ray.position - sphere.coordinates;
     Vector3<double> dir = ray.direction;
     dir.normalize();
 
+    // cout << "Coords: " << sphere.coordinates << ", Rad: " << sphere.radius << endl;
     double a = Vector3<double>::dot(dir, dir);
     double b = 2.0 * Vector3<double>::dot(offsetRayPos, dir);
     double c = Vector3<double>::dot(offsetRayPos, offsetRayPos) -
@@ -67,17 +69,9 @@ HitData sphereIntersect(Ray const& ray, Sphere const& sphere) {
 }
 
 Vector3<double> handleHit(Ray& cameraRay,
-                          shared_ptr<Mesh<Geometry, Light>> current,
+                          unique_ptr<Mesh<Geometry, Material>>& current,
                           HitData const& hitData) {
     Vector3<double> incomingLight{0.0, 0.0, 0.0};
-    // double dist = (intersectPoint - cameraRay.position).norm();
-    // if (dist > maxDist) {
-    //     maxDist = dist;
-    // }
-
-    // if (dist < minDist) {
-    //     minDist = dist;
-    // }
 
     // cout << "Hit: " << intersectPoint << endl;
     // cout << "Ray Dir: " << cameraRay.direction << endl;
@@ -86,27 +80,21 @@ Vector3<double> handleHit(Ray& cameraRay,
     cameraRay.direction = randomReboundDirection(hitData.hitNormal);
     // cout << "New Direction: " << cameraRay.direction << endl;
 
-    Light material = current->material;
-    Vector3<double> color = material.color();
+    unique_ptr<Material> material = current->material->clone();
+    Vector3<double> color = material->color();
     // cout << "Material Color: " << color << endl;
-    color /= 255.0;
-    Vector3<double> emittedLight = color * material.luminosity();
+    // color /= 255.0;
+    Vector3<double> emittedLight = color * material->luminosity();
     // cout << "Emitted Light: " << emittedLight << endl;
     // cout << "Luminosity: " << material.luminosity() << endl;
-    incomingLight += emittedLight * (cameraRay.color / 255.0);
-    incomingLight *= 255.0;
+    Vector3<double> partialLight = (emittedLight * cameraRay.color) / 255.0;
+    // incomingLight *= 255.0;
+    // cout << "Partial Light: " << partialLight << endl;
+    incomingLight += partialLight;
     // cout << "Incoming Light: " << incomingLight << endl;
-    cameraRay.color *= color;
+    cameraRay.color *= (color / 255.0);
 
     return incomingLight;
-    // cout << "Camera Ray Color: " << cameraRay.color << endl;
-
-    // outputImage.setPixel(x, y, incomingLight.x, incomingLight.y,
-    //                      incomingLight.z);
-    // outputImage.setPixel(x, y,
-    //                      color.x - ((dist - 9.0) / 0.94605) * color.x,
-    //                      color.y - ((dist - 9.0) / 0.94605) * color.y,
-    //                      color.z - ((dist - 9.0) / 0.94605) * color.z);
 }
 
 bool almostEqual(double const a, double const b) {

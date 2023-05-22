@@ -266,7 +266,7 @@ template <typename T>
 Vector3<T> operator*(auto scalar, Vector3<T> const& rhs);
 
 template <typename T>
-Vector3<T> operator*(Vector3<T> const& lhs,auto scalar);
+Vector3<T> operator*(Vector3<T> const& lhs, auto scalar);
 
 template <typename T>
 Vector3<T> operator*(Vector3<T> const& lhs, Vector3<T> const& rhs);
@@ -278,6 +278,16 @@ template <typename T>
 std::ostream& operator<<(std::ostream& os, Vector3<T> const& v) {
     os << "<" << v.x << " " << v.y << " " << v.z << ">";
     return os;
+}
+
+template <typename T>
+inline bool operator==(Vector3<T> const& lhs, Vector3<T> const& rhs) {
+    return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+}
+
+template <typename T>
+inline bool operator!=(Vector3<T> const& lhs, Vector3<T> const& rhs) {
+    return !(lhs == rhs);
 }
 
 }  // namespace mpcs51045
