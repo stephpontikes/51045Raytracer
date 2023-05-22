@@ -6,7 +6,6 @@ using std::make_unique;
 using std::tuple;
 using std::unique_ptr;
 
-using namespace mpcs51045;
 
 namespace mpcs51045 {
 template <typename T>
@@ -44,10 +43,13 @@ struct concrete_factory<abstract_factory<AbstractTypes...>, ConcreteTypes...>
                               AbstractTypes, ConcreteTypes>... {
 };
 
-// Test Later, not sure if implementation is correct
+// todo: arguments for mesh factory types
 template <template <class, class> class M, typename Geometry, typename Material>
 struct mesh_creator {
-    unique_ptr<M<Geometry, Material>> doCreate(TT<Geometry> &&, TT<Material> &&) {
+    // inherited methods are not namespaced if they are not called from a specific type;
+    // smart to make multiple inheritance "overloads" virtual, or to use "using" statements to bring
+    // them into the derived class namespace
+    virtual unique_ptr<M<Geometry, Material>> doCreate(TT<Geometry> &&, TT<Material> &&) {
         return make_unique<M<Geometry, Material>>();
     }
 };
@@ -55,13 +57,12 @@ struct mesh_creator {
 template <template <class, class> typename M, typename Geometries, typename Materials>
 struct parallel_mesh_factory;
 
-template <template <class, class> typename M, typename... Ts, typename... Us>
-struct parallel_mesh_factory<M, tuple<Ts...>, tuple<Us...>>
-    : mesh_creator<M, Ts, Us>... {
-    // Possibly need to call doCreate from *this object... if so, why? ask
-    template <typename Geometry, typename Material>
-    std::unique_ptr<M<Geometry, Material>> create() {
-        return doCreate(TT<Geometry>(), TT<Material>());
+template <template <class, class> typename M, typename... Ts, typename U>
+struct parallel_mesh_factory<M, tuple<Ts...>, U>
+    : public mesh_creator<M, Ts, U>... {
+    template <typename Geometry>
+    std::unique_ptr<M<Geometry, U>> create() {
+        return this->doCreate(TT<Geometry>(), TT<U>());
     }
 };
 

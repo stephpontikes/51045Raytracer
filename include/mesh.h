@@ -21,8 +21,8 @@ struct Mesh {
     Light material;
 };
 
-using GlossyMeshFactory = parallel_mesh_factory<Mesh, tuple<Sphere, Triangle>, tuple<Glossy, Glossy>>;
-using MatteMeshFactory = parallel_mesh_factory<Mesh, tuple<Sphere, Triangle>, tuple<Matte, Matte>>;
+using GlossyMeshFactory = parallel_mesh_factory<Mesh, tuple<Sphere, Triangle>, Glossy>;
+using MatteMeshFactory = parallel_mesh_factory<Mesh, tuple<Sphere, Triangle>, Glossy>;
 
 }  // namespace mpcs51045
 
