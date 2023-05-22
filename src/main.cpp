@@ -29,7 +29,7 @@ int main() {
     auto start = high_resolution_clock::now();
     unique_ptr<Graphics> graphics = make_unique<Graphics>(windowWidth,
                                                           windowHeight);
-    cout << "Render Time: " << duration_cast<seconds>(high_resolution_clock::now() - start).count() << "s" << endl;
+    cout << "Render Time: " << duration_cast<milliseconds>(high_resolution_clock::now() - start).count() << "ms" << endl;
 
     graphics->run();
 
