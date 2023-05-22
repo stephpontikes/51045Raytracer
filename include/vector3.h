@@ -46,7 +46,7 @@ struct Vector3 {
     }
 
     Vector3<T>& operator-=(Vector3<T> const& rhs) {
-        this->x = this->x - rhs.x;  // This is the easy one
+        this->x = this->x - rhs.x;
         this->y = this->y - rhs.y;
         this->z = this->z - rhs.z;
 
@@ -59,7 +59,7 @@ struct Vector3 {
     }
 
     Vector3<T>& operator+=(const Vector3<T>& rhs) {
-        this->x = this->x + rhs.x;  // This is the easy one
+        this->x = this->x + rhs.x;
         this->y = this->y + rhs.y;
         this->z = this->z + rhs.z;
 
@@ -71,12 +71,40 @@ struct Vector3 {
         return lhs;
     }
 
+    Vector3<T>& operator*=(Vector3<T> const& rhs) {
+        this->x = this->x * rhs.x;
+        this->y = this->y * rhs.y;
+        this->z = this->z * rhs.z;
+
+        return *this;
+    }
+
+    Vector3<T>& operator*=(const T& val) {
+        this->x = this->x * val;
+        this->y = this->y * val;
+        this->z = this->z * val;
+
+        return *this;
+    }
+
     friend Vector3<T> operator*(Numeric auto scalar, Vector3<T> const& rhs) {
         return Vector3<T>{rhs.x * scalar, rhs.y * scalar, rhs.z * scalar};
     }
 
     friend Vector3<T> operator*(Vector3<T> const& lhs, Numeric auto scalar) {
         return scalar * lhs;
+    }
+
+    friend Vector3<T> operator*(Vector3<T> const& lhs, Vector3<T> const& rhs) {
+        return Vector3<T>{lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z};
+    }
+
+    Vector3<T>& operator/=(const T& val) {
+        this->x = this->x / val;
+        this->y = this->y / val;
+        this->z = this->z / val;
+
+        return *this;
     }
 
     friend Vector3<T> operator/(Vector3<T> const& lhs, Numeric auto scalar) {
@@ -99,6 +127,9 @@ Vector3<T> operator*(Numeric auto scalar, Vector3<T> const& rhs);
 
 template <Numeric T>
 Vector3<T> operator*(Vector3<T> const& lhs, Numeric auto scalar);
+
+template <Numeric T>
+Vector3<T> operator*(Vector3<T> const& lhs, Vector3<T> const& rhs);
 
 template <Numeric T>
 Vector3<T> operator/(Vector3<T> const& lhs, Numeric auto scalar);
