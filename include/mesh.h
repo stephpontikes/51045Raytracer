@@ -1,16 +1,24 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include <type_traits>
+
 #include "geometries.h"
 #include "materials.h"
 
-namespace mpcs51045 {
-template <typename Geometry, typename Material>
-struct Mesh {
-    Mesh(Geometry const& g, Material const& m) : geometry(g), material(m) {}
+using std::is_base_of_v;
+using std::is_same;
+using std::negation_v;
 
-    Geometry geometry;
-    Material material;
+namespace mpcs51045 {
+template <typename G, typename M>
+    requires is_base_of_v<Geometry, G> &&
+             is_base_of_v<Material, M>
+struct Mesh {
+    Mesh(G const& g, Light const& m) : geometry(g), material(m) {}
+
+    G geometry;
+    Light material;
 };
 
 using GlossyMeshFactory = parallel_mesh_factory<Mesh, tuple<Sphere, Triangle>, tuple<Glossy, Glossy>>;

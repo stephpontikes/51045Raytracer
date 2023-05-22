@@ -21,8 +21,8 @@ class Material {
     Material(Vector3<double> const &c) : mat_color(c) {}
     virtual ~Material() = default;
 
-    virtual double reflectivity() { return 0.0; }
-    virtual double luminosity() { return 0.0; }
+    virtual double reflectivity() = 0;
+    virtual double luminosity() = 0;
     Vector3<double> color() { return mat_color; }
 
    private:
@@ -50,7 +50,7 @@ class Light : public Material {
     Light(Vector3<double> c) : Material(c) {}
 
     double reflectivity() { return 0.0; }
-    double luminosity() { return 10.0; }
+    double luminosity() { return 0.9; }
 };
 
 using AbstractMaterialFactory = mpcs51045::abstract_factory<Material>;

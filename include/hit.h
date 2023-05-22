@@ -5,12 +5,15 @@
 
 #include "geometries.h"
 #include "materials.h"
+#include "mesh.h"
+#include "random.h"
 #include "vector3.h"
 
 using namespace mpcs51045;
 
 namespace mpcs51045 {
 
+using std::shared_ptr;
 using std::unique_ptr;
 
 struct HitData {
@@ -61,6 +64,49 @@ HitData sphereIntersect(Ray const& ray, Sphere const& sphere) {
     }
 
     return result;
+}
+
+Vector3<double> handleHit(Ray& cameraRay,
+                          shared_ptr<Mesh<Geometry, Light>> current,
+                          HitData const& hitData) {
+    Vector3<double> incomingLight{0.0, 0.0, 0.0};
+    // double dist = (intersectPoint - cameraRay.position).norm();
+    // if (dist > maxDist) {
+    //     maxDist = dist;
+    // }
+
+    // if (dist < minDist) {
+    //     minDist = dist;
+    // }
+
+    // cout << "Hit: " << intersectPoint << endl;
+    // cout << "Ray Dir: " << cameraRay.direction << endl;
+    // Move ray
+    cameraRay.position = hitData.hitPoint;
+    cameraRay.direction = randomReboundDirection(hitData.hitNormal);
+    // cout << "New Direction: " << cameraRay.direction << endl;
+
+    Light material = current->material;
+    Vector3<double> color = material.color();
+    // cout << "Material Color: " << color << endl;
+    color /= 255.0;
+    Vector3<double> emittedLight = color * material.luminosity();
+    // cout << "Emitted Light: " << emittedLight << endl;
+    // cout << "Luminosity: " << material.luminosity() << endl;
+    incomingLight += emittedLight * (cameraRay.color / 255.0);
+    incomingLight *= 255.0;
+    // cout << "Incoming Light: " << incomingLight << endl;
+    cameraRay.color *= color;
+
+    return incomingLight;
+    // cout << "Camera Ray Color: " << cameraRay.color << endl;
+
+    // outputImage.setPixel(x, y, incomingLight.x, incomingLight.y,
+    //                      incomingLight.z);
+    // outputImage.setPixel(x, y,
+    //                      color.x - ((dist - 9.0) / 0.94605) * color.x,
+    //                      color.y - ((dist - 9.0) / 0.94605) * color.y,
+    //                      color.z - ((dist - 9.0) / 0.94605) * color.z);
 }
 
 bool almostEqual(double const a, double const b) {
