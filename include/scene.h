@@ -35,14 +35,17 @@ class Scene {
         camera.updateCameraGeometry();
 
         // Note: +x: right, +y: into screen, +z: down
-        Sphere s{Vector3<double>{0.0, 0.0, 0.5}, 0.5};
+        Sphere s{Vector3<double>{0.0, 6.0, 1.5}, 0.5};
         Glossy g{Vector3<double>{255.0, 0.0, 255.0}};
 
-        Sphere sl{Vector3<double>{-1.5, 0.0, -1.0}, 1.0};
+        Sphere sl{Vector3<double>{-5.0, 5.0, -5.0}, 5.0};
         Light whiteLight{Vector3<double>{255.0, 255.0, 255.0}};
 
-        Sphere sl2{Vector3<double>{1.5, 0.0, -1.0}, 0.75};
+        Sphere sl2{Vector3<double>{1.5, 0.0, 0.5}, 0.5};
         Light greenLight{Vector3<double>{0.0, 255.0, 0.0}};
+
+        Sphere base{Vector3<double>{0.0, 6.0, 11.0}, 10.0};
+        Glossy gr{Vector3<double>{255.0, 0.0, 0.0}};
         // Mesh<Geometry, Material> mesh{make_unique<Geometry>(s), make_unique<Material>(g)};
         // Mesh<Geometry, Material> meshl{make_unique<Geometry>(sl), make_unique<Material>(l)};
         unique_ptr<GlossyMeshFactory> meshFactory(make_unique<GlossyMeshFactory>());
@@ -51,8 +54,11 @@ class Scene {
         // shared_ptr<Mesh<Geometry, Material>> shared = ptr;
         unique_ptr<Mesh<Geometry, Material>> ms = make_unique<Mesh<Geometry, Material>>(s, g);
         unique_ptr<Mesh<Geometry, Material>> msl = make_unique<Mesh<Geometry, Material>>(sl, whiteLight);
-        // unique_ptr<Mesh<Geometry, Material>> msl2 = make_unique<Mesh<Geometry, Material>>(sl2, greenLight);
+        unique_ptr<Mesh<Geometry, Material>> msbase = make_unique<Mesh<Geometry, Material>>(base, gr);
+        unique_ptr<Mesh<Geometry, Material>> msl2 = make_unique<Mesh<Geometry, Material>>(sl2, greenLight);
+        // NOTE: Have to add all of the objects first, then all light sources
         objects.emplace_back(std::move(ms));
+        objects.emplace_back(std::move(msbase));
         objects.emplace_back(std::move(msl));
         // objects.emplace_back(std::move(msl2));
         // make_shared<Mesh<Geometry, Material>>(
@@ -84,7 +90,7 @@ class Scene {
                 double normY = static_cast<double>(y * yFact - 1.0);
 
                 totalIncomingLight = Vector3<double>{0.0, 0.0, 0.0};
-                int maxBounceCount = 2;
+                int maxBounceCount = 5;
                 int numRaysPerPixel = 10;
 
                 for (int j = 0; j < numRaysPerPixel; j++) {
@@ -123,7 +129,6 @@ class Scene {
                                      totalIncomingLight.z);
             }
         }
-        cout << "Finished looping" << endl;
 
         return true;
     }

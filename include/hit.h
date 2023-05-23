@@ -71,13 +71,14 @@ HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
 Vector3<double> handleHit(Ray& cameraRay,
                           unique_ptr<Mesh<Geometry, Material>>& current,
                           HitData const& hitData) {
-    Vector3<double> incomingLight{0.0, 0.0, 0.0};
+    // Vector3<double> incomingLight{0.0, 0.0, 0.0};
 
     // cout << "Hit: " << intersectPoint << endl;
     // cout << "Ray Dir: " << cameraRay.direction << endl;
     // Move ray
     cameraRay.position = hitData.hitPoint;
-    cameraRay.direction = randomReboundDirection(hitData.hitNormal);
+    cameraRay.direction = randomReboundDirection(hitData.hitNormal) + hitData.hitNormal;
+    cameraRay.direction.normalize();
     // cout << "New Direction: " << cameraRay.direction << endl;
 
     unique_ptr<Material> material = current->material->clone();
@@ -85,14 +86,19 @@ Vector3<double> handleHit(Ray& cameraRay,
     // cout << "Material Color: " << color << endl;
     // color /= 255.0;
     Vector3<double> emittedLight = color * material->luminosity();
+
     // cout << "Emitted Light: " << emittedLight << endl;
-    // cout << "Luminosity: " << material.luminosity() << endl;
-    Vector3<double> partialLight = (emittedLight * cameraRay.color) / 255.0;
+    // wrapRGBValues(emittedLight);
+    // cout << "Updated Emitted Light: " << emittedLight << endl;
+    // cout << "Luminosity: " << material->luminosity() << endl;
+    // double lightStrength = Vector3<double>::dot(hitData.hitNormal, cameraRay.direction);
+    // cout << "Light Strength: " << lightStrength << endl;
+    Vector3<double> incomingLight = (emittedLight * cameraRay.color) / 255.0;
     // incomingLight *= 255.0;
-    // cout << "Partial Light: " << partialLight << endl;
-    incomingLight += partialLight;
     // cout << "Incoming Light: " << incomingLight << endl;
-    cameraRay.color *= (color / 255.0);
+    // cout << "Old Ray Color: " << cameraRay.color << endl;
+    cameraRay.color = (cameraRay.color * color) / 255.0;  // * lightStrength * 2.0;
+    // cout << "New Ray Color: " << cameraRay.color << endl;
 
     return incomingLight;
 }
