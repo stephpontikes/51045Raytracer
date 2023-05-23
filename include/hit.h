@@ -72,17 +72,19 @@ Vector3<double> handleHit(Ray& cameraRay,
                           unique_ptr<Mesh<Geometry, Material>>& current,
                           HitData const& hitData) {
     // Vector3<double> incomingLight{0.0, 0.0, 0.0};
+    unique_ptr<Material> material = current->material->clone();
+    Vector3<double> color = material->color();
 
     // cout << "Hit: " << intersectPoint << endl;
     // cout << "Ray Dir: " << cameraRay.direction << endl;
     // Move ray
     cameraRay.position = hitData.hitPoint;
-    cameraRay.direction = randomReboundDirection(hitData.hitNormal) + hitData.hitNormal;
-    cameraRay.direction.normalize();
+    Vector3<double> diffuseDir = randomReboundDirection(hitData.hitNormal) + hitData.hitNormal;
+    diffuseDir.normalize();
+    Vector3<double> specularDir = Vector3<double>::reflect(cameraRay.direction, hitData.hitNormal);
+    cameraRay.direction = Vector3<double>::interpolate(diffuseDir, specularDir, material->reflectivity());
     // cout << "New Direction: " << cameraRay.direction << endl;
 
-    unique_ptr<Material> material = current->material->clone();
-    Vector3<double> color = material->color();
     // cout << "Material Color: " << color << endl;
     // color /= 255.0;
     Vector3<double> emittedLight = color * material->luminosity();
