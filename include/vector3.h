@@ -185,7 +185,16 @@ struct Vector3 {
         return res;
     }
 
-    Vector3<T>& operator-=(Vector3<T> const& rhs) {
+    static Vector3<T> reflect(Vector3<T> const& dir, Vector3<T> const& normal) {
+        return dir - 2.0 * Vector3<T>::dot(dir, normal) * normal;
+    }
+
+    static Vector3<T> interpolate(Vector3<T> const& from, Vector3<T> const& to, double factor) {
+        return factor * from + (1.0 - factor) * to;
+    }
+
+    Vector3<T>&
+    operator-=(Vector3<T> const& rhs) {
         this->x = this->x - rhs.x;
         this->y = this->y - rhs.y;
         this->z = this->z - rhs.z;
