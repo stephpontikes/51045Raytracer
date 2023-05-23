@@ -25,8 +25,9 @@ int main() {
 
     unique_ptr<GlossyMeshFactory> gmf = make_unique<GlossyMeshFactory>();
     auto gs = gmf->create<Triangle>(Vector3<double>(30.0, 40.0, 50.0));
-    std::cout << gs->geometry->coordinates << std::endl;
 
+    unique_ptr<Mesh<Geometry, Material>> mesh = std::move(gs);
+    std::cout << mesh->geometry->coordinates << std::endl;
 
     return 0;
 }
