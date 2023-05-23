@@ -62,20 +62,42 @@ HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
         result.hitNormal.normalize();
     } else {
         result.didHit = false;
-        return result;
     }
 
     return result;
 }
 
+std::pair<HitData, int> getClosestHit(Ray& cameraRay,
+                                      std::vector<unique_ptr<Mesh<Geometry, Material>>>& objects) {
+    HitData closestHit;
+    HitData currentHit;
+    int closestIndex = -1;
+    // Glossy g{Vector3<double>{255.0, 0.0, 255.0}};
+    // Material& closestMat = g;
+    // unique_ptr<Material> closestMat = make_unique<Glossy>(Glossy{Vector3<double>{0.0, 0.0, 0.0}});
+    closestHit.distance = INFINITY;
+    // Test for intersections with all objects (replace with visitor in future)
+    for (int i = 0; i < objects.size(); i++) {
+        auto& current = objects.at(i);
+        currentHit = sphereIntersect(cameraRay, current->geometry);
+
+        if (currentHit.didHit && currentHit.distance < closestHit.distance) {
+            closestHit.didHit = currentHit.didHit;
+            closestHit.distance = currentHit.distance;
+            closestHit.hitPoint = currentHit.hitPoint;
+            closestHit.hitNormal = currentHit.hitNormal;
+            closestIndex = i;
+        }
+    }
+
+    return std::make_pair(closestHit, closestIndex);
+}
+
 Vector3<double> handleHit(Ray& cameraRay,
-                          unique_ptr<Mesh<Geometry, Material>>& current,
+                          unique_ptr<Material> const& material,
                           HitData const& hitData) {
-    // Vector3<double> incomingLight{0.0, 0.0, 0.0};
-    unique_ptr<Material> material = current->material->clone();
     Vector3<double> color = material->color();
 
-    // cout << "Hit: " << intersectPoint << endl;
     // cout << "Ray Dir: " << cameraRay.direction << endl;
     // Move ray
     cameraRay.position = hitData.hitPoint;
@@ -83,6 +105,7 @@ Vector3<double> handleHit(Ray& cameraRay,
     diffuseDir.normalize();
     Vector3<double> specularDir = Vector3<double>::reflect(cameraRay.direction, hitData.hitNormal);
     cameraRay.direction = Vector3<double>::interpolate(diffuseDir, specularDir, material->reflectivity());
+    cameraRay.direction.normalize();
     // cout << "New Direction: " << cameraRay.direction << endl;
 
     // cout << "Material Color: " << color << endl;
@@ -90,16 +113,12 @@ Vector3<double> handleHit(Ray& cameraRay,
     Vector3<double> emittedLight = color * material->luminosity();
 
     // cout << "Emitted Light: " << emittedLight << endl;
-    // wrapRGBValues(emittedLight);
-    // cout << "Updated Emitted Light: " << emittedLight << endl;
     // cout << "Luminosity: " << material->luminosity() << endl;
-    // double lightStrength = Vector3<double>::dot(hitData.hitNormal, cameraRay.direction);
-    // cout << "Light Strength: " << lightStrength << endl;
     Vector3<double> incomingLight = (emittedLight * cameraRay.color) / 255.0;
     // incomingLight *= 255.0;
     // cout << "Incoming Light: " << incomingLight << endl;
     // cout << "Old Ray Color: " << cameraRay.color << endl;
-    cameraRay.color = (cameraRay.color * color) / 255.0;  // * lightStrength * 2.0;
+    cameraRay.color = (cameraRay.color * color) / 255.0;
     // cout << "New Ray Color: " << cameraRay.color << endl;
 
     return incomingLight;

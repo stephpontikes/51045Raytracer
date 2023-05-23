@@ -35,19 +35,18 @@ class Scene {
         camera.updateCameraGeometry();
 
         // Note: +x: right, +y: into screen, +z: down
-        Sphere s{Vector3<double>{0.0, 6.0, 1.5}, 0.5};
+        Sphere s{Vector3<double>{-1.5, 4.5, 0.5}, 0.5};
         Glossy g{Vector3<double>{255.0, 0.0, 255.0}};
 
-        Sphere sl{Vector3<double>{-5.0, 5.0, -5.0}, 5.0};
+        Sphere sl{Vector3<double>{-9.0, 10.0, -9.0}, 10.0};
         Light whiteLight{Vector3<double>{255.0, 255.0, 255.0}};
 
-        Sphere sl2{Vector3<double>{1.5, 0.0, 0.5}, 0.5};
-        Light greenLight{Vector3<double>{0.0, 255.0, 0.0}};
+        Sphere s2{Vector3<double>{-0.25, 4.5, 0.5}, 0.5};
+        Glossy green{Vector3<double>{0.0, 255.0, 0.0}};
 
         Sphere base{Vector3<double>{0.0, 6.0, 11.0}, 10.0};
         Glossy gr{Vector3<double>{255.0, 0.0, 0.0}};
-        // Mesh<Geometry, Material> mesh{make_unique<Geometry>(s), make_unique<Material>(g)};
-        // Mesh<Geometry, Material> meshl{make_unique<Geometry>(sl), make_unique<Material>(l)};
+
         unique_ptr<GlossyMeshFactory> meshFactory(make_unique<GlossyMeshFactory>());
         // auto mesh(meshFactory->create<Sphere, Glossy>());
         auto ptr = meshFactory->create<Sphere>(Vector3<double>{255.0, 255.0, 255.0}, Vector3<double>{1.25, 0.0, 0.0}, 1.0);
@@ -55,13 +54,13 @@ class Scene {
         unique_ptr<Mesh<Geometry, Material>> ms = make_unique<Mesh<Geometry, Material>>(s, g);
         unique_ptr<Mesh<Geometry, Material>> msl = make_unique<Mesh<Geometry, Material>>(sl, whiteLight);
         unique_ptr<Mesh<Geometry, Material>> msbase = make_unique<Mesh<Geometry, Material>>(base, gr);
-        unique_ptr<Mesh<Geometry, Material>> msl2 = make_unique<Mesh<Geometry, Material>>(sl2, greenLight);
-        // NOTE: Have to add all of the objects first, then all light sources
+        unique_ptr<Mesh<Geometry, Material>> ms2 = make_unique<Mesh<Geometry, Material>>(s2, green);
+
         objects.emplace_back(std::move(ms));
         objects.emplace_back(std::move(msbase));
         objects.emplace_back(std::move(msl));
-        // objects.emplace_back(std::move(msl2));
-        // make_shared<Mesh<Geometry, Material>>(
+        objects.emplace_back(std::move(ms2));
+
         // Color first, then position, then radius
         // meshFactory->create<Sphere>(Vector3<double>{255.0, 255.0, 255.0}, Vector3<double>{1.25, 0.0, 0.0}, 1.0));
         // objects.push_back(make_shared<Mesh<Geometry, Material>>(mesh));
@@ -74,51 +73,40 @@ class Scene {
 
         // Loop over each pixel in the image
         Ray cameraRay;
-        Vector3<double> intersectPoint;
-        Vector3<double> localNormal;
-        Vector3<double> localColor;
         HitData hitData;
         Vector3<double> totalIncomingLight{0.0, 0.0, 0.0};
 
         double xFact = 1.0 / (static_cast<double>(imgWidth / 2.0));
         double yFact = 1.0 / (static_cast<double>(imgHeight / 2.0));
-        double minDist = 1e6;
-        double maxDist = 0.0;
         for (int x = 0; x < imgWidth; x++) {
             for (int y = 0; y < imgHeight; y++) {
                 double normX = static_cast<double>(x * xFact - 1.0);
                 double normY = static_cast<double>(y * yFact - 1.0);
 
                 totalIncomingLight = Vector3<double>{0.0, 0.0, 0.0};
-                int maxBounceCount = 5;
+                int maxBounceCount = 3;
                 int numRaysPerPixel = 10;
 
                 for (int j = 0; j < numRaysPerPixel; j++) {
                     camera.createRay(normX, normY, cameraRay);
-                    // Test for intersections with all objects (replace with visitor in future)
-                    for (auto& current : objects) {
-                        for (int i = 0; i < maxBounceCount; i++) {
-                            try {
-                                // auto m = static_cast<Mesh<Geometry, Light>>(*current.get());
-                                // auto sphere = static_cast<Sphere>(*current->geometry.get());
-                                // auto sphere = Sphere{Vector3<double>{0.0, 0.0, 0.0}, 1.0};
-                                hitData = sphereIntersect(cameraRay, current->geometry);
-                            } catch (std::bad_cast const& e) {
-                                cout << "Failed cast" << endl;
-                                continue;
-                            }
+                    for (int i = 0; i < maxBounceCount; i++) {
+                        auto hitTuple = getClosestHit(cameraRay, objects);
+                        hitData = hitTuple.first;
+                        auto idx = hitTuple.second;
+                        // cout << "index: " << idx << endl;
 
-                            if (hitData.didHit) {
-                                // cout << "Before: " << cameraRay << endl;
-                                Vector3<double> partialLight = handleHit(cameraRay, current, hitData);
-                                // cout << "After: " << cameraRay << endl;
-                                // cout << "New Light: " << partialLight << endl;
+                        if (hitData.didHit && idx >= 0) {
+                            auto& current = objects.at(idx);
+                            // cout << current->geometry->coordinates << endl;
+                            // cout << "Before: " << cameraRay << endl;
+                            Vector3<double> partialLight = handleHit(cameraRay, current->material, hitData);
+                            // cout << "After: " << cameraRay << endl;
+                            // cout << "New Light: " << partialLight << endl;
 
-                                totalIncomingLight += partialLight;
+                            totalIncomingLight += partialLight;
 
-                            } else {
-                                break;
-                            }
+                        } else {
+                            break;
                         }
                     }
                 }
@@ -136,7 +124,6 @@ class Scene {
    private:
     Camera camera;
     std::vector<unique_ptr<Mesh<Geometry, Material>>> objects;
-    // Sphere sphere{Vector3<double>{0.0, 0.0, 0.0}, 1.0};
 };
 
 }  // namespace mpcs51045
