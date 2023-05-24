@@ -2,9 +2,8 @@
 #define MATERIALS_H
 
 #include "factory.h"
-#include "vector3.h"
 #include "variadics/variadic_examples.h"
-
+#include "vector3.h"
 
 /*
 Translucence
@@ -65,11 +64,11 @@ class Light : public Material {
     double luminosity() override { return 10.0; }
 };
 
-using AbstractMaterialFactory = mpcs51045::abstract_factory<Material>;
-using MaterialFactory = mpcs51045::concrete_factory<AbstractMaterialFactory,
-                                                    Glossy, Matte>;
+// using AbstractMaterialFactory = mpcs51045::abstract_factory<Material>;
+// using MaterialFactory = mpcs51045::concrete_factory<AbstractMaterialFactory,
+//                                                     Glossy, Matte>;
 
-using material_types = typelist<Material, Glossy, Matte>;                                                   
+using material_types = typelist<Material, Glossy, Matte>;
 
 }  // namespace mpcs51045
 

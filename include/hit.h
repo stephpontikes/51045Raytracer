@@ -25,9 +25,9 @@ struct HitData {
 
 HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
     HitData result;
-    Sphere sphere = *dynamic_cast<Sphere*>(geom.get());
-
-    Vector3<double> offsetRayPos = ray.position - sphere.coordinates;
+    Sphere* sphere = dynamic_cast<Sphere*>(geom.get());
+    // cout << "pass" << (sphere == nullptr) << endl;
+    Vector3<double> offsetRayPos = ray.position - sphere->coordinates;
     Vector3<double> dir = ray.direction;
     dir.normalize();
 
@@ -35,7 +35,7 @@ HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
     double a = Vector3<double>::dot(dir, dir);
     double b = 2.0 * Vector3<double>::dot(offsetRayPos, dir);
     double c = Vector3<double>::dot(offsetRayPos, offsetRayPos) -
-               sphere.radius * sphere.radius;
+               sphere->radius * sphere->radius;
 
     double discriminant = b * b - 4.0 * a * c;
 
@@ -58,7 +58,7 @@ HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
         }
 
         result.hitPoint = ray.position + (dir * result.distance);
-        result.hitNormal = result.hitPoint - sphere.coordinates;
+        result.hitNormal = result.hitPoint - sphere->coordinates;
         result.hitNormal.normalize();
     } else {
         result.didHit = false;
@@ -68,7 +68,7 @@ HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
 }
 
 std::pair<HitData, int> getClosestHit(Ray& cameraRay,
-                                      std::vector<unique_ptr<Mesh<Geometry, Material>>>& objects) {
+                                      std::vector<unique_ptr<Mesh<Geometry, Material>>> const& objects) {
     HitData closestHit;
     HitData currentHit;
     int closestIndex = -1;
