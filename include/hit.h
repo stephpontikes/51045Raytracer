@@ -23,13 +23,15 @@ struct HitData {
     Vector3<double> hitNormal;
 };
 
-HitData sphereIntersect(Ray const& ray, Sphere const& sphere) {
+HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
     HitData result;
+    Sphere sphere = *dynamic_cast<Sphere*>(geom.get());
 
     Vector3<double> offsetRayPos = ray.position - sphere.coordinates;
     Vector3<double> dir = ray.direction;
     dir.normalize();
 
+    // cout << "Coords: " << sphere.coordinates << ", Rad: " << sphere.radius << endl;
     double a = Vector3<double>::dot(dir, dir);
     double b = 2.0 * Vector3<double>::dot(offsetRayPos, dir);
     double c = Vector3<double>::dot(offsetRayPos, offsetRayPos) -
@@ -60,53 +62,66 @@ HitData sphereIntersect(Ray const& ray, Sphere const& sphere) {
         result.hitNormal.normalize();
     } else {
         result.didHit = false;
-        return result;
     }
 
     return result;
 }
 
+std::pair<HitData, int> getClosestHit(Ray& cameraRay,
+                                      std::vector<unique_ptr<Mesh<Geometry, Material>>>& objects) {
+    HitData closestHit;
+    HitData currentHit;
+    int closestIndex = -1;
+    // Glossy g{Vector3<double>{255.0, 0.0, 255.0}};
+    // Material& closestMat = g;
+    // unique_ptr<Material> closestMat = make_unique<Glossy>(Glossy{Vector3<double>{0.0, 0.0, 0.0}});
+    closestHit.distance = INFINITY;
+    // Test for intersections with all objects (replace with visitor in future)
+    for (int i = 0; i < objects.size(); i++) {
+        auto& current = objects.at(i);
+        currentHit = sphereIntersect(cameraRay, current->geometry);
+
+        if (currentHit.didHit && currentHit.distance < closestHit.distance) {
+            closestHit.didHit = currentHit.didHit;
+            closestHit.distance = currentHit.distance;
+            closestHit.hitPoint = currentHit.hitPoint;
+            closestHit.hitNormal = currentHit.hitNormal;
+            closestIndex = i;
+        }
+    }
+
+    return std::make_pair(closestHit, closestIndex);
+}
+
 Vector3<double> handleHit(Ray& cameraRay,
-                          shared_ptr<Mesh<Geometry, Light>> current,
+                          unique_ptr<Material> const& material,
                           HitData const& hitData) {
-    Vector3<double> incomingLight{0.0, 0.0, 0.0};
-    // double dist = (intersectPoint - cameraRay.position).norm();
-    // if (dist > maxDist) {
-    //     maxDist = dist;
-    // }
+    Vector3<double> color = material->color();
 
-    // if (dist < minDist) {
-    //     minDist = dist;
-    // }
-
-    // cout << "Hit: " << intersectPoint << endl;
     // cout << "Ray Dir: " << cameraRay.direction << endl;
     // Move ray
     cameraRay.position = hitData.hitPoint;
-    cameraRay.direction = randomReboundDirection(hitData.hitNormal);
+    Vector3<double> diffuseDir = randomReboundDirection(hitData.hitNormal) + hitData.hitNormal;
+    diffuseDir.normalize();
+    Vector3<double> specularDir = Vector3<double>::reflect(cameraRay.direction, hitData.hitNormal);
+    cameraRay.direction = Vector3<double>::interpolate(diffuseDir, specularDir, material->reflectivity());
+    cameraRay.direction.normalize();
     // cout << "New Direction: " << cameraRay.direction << endl;
 
-    Light material = current->material;
-    Vector3<double> color = material.color();
     // cout << "Material Color: " << color << endl;
-    color /= 255.0;
-    Vector3<double> emittedLight = color * material.luminosity();
+    // color /= 255.0;
+    Vector3<double> emittedLight = color * material->luminosity();
+
     // cout << "Emitted Light: " << emittedLight << endl;
-    // cout << "Luminosity: " << material.luminosity() << endl;
-    incomingLight += emittedLight * (cameraRay.color / 255.0);
-    incomingLight *= 255.0;
+    // cout << "Luminosity: " << material->luminosity() << endl;
+    Vector3<double> incomingLight = (emittedLight * cameraRay.color) / 255.0;
+    // incomingLight *= 255.0;
     // cout << "Incoming Light: " << incomingLight << endl;
-    cameraRay.color *= color;
+    // cout << "Old Ray Color: " << cameraRay.color << endl;
+    cameraRay.color = (cameraRay.color * color) / 255.0;
+    // cout << "New Ray Color: " << cameraRay.color << endl;
 
     return incomingLight;
-    // cout << "Camera Ray Color: " << cameraRay.color << endl;
-
-    // outputImage.setPixel(x, y, incomingLight.x, incomingLight.y,
-    //                      incomingLight.z);
-    // outputImage.setPixel(x, y,
-    //                      color.x - ((dist - 9.0) / 0.94605) * color.x,
-    //                      color.y - ((dist - 9.0) / 0.94605) * color.y,
-    //                      color.z - ((dist - 9.0) / 0.94605) * color.z);
 }
 
 bool almostEqual(double const a, double const b) {

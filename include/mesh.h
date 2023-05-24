@@ -21,18 +21,15 @@ struct Mesh
         material = make_unique<M>(color);
     }
 
-    // Mesh(G const& g, Light const& m) : geometry(g), material(m) {}
-
-
+    Mesh(Mesh const& m) : geometry(m->geometry->clone()), material(m->material->clone()) {}
+    Mesh(G const& g, M const& m) : geometry(g.clone()), material(m.clone()) {}
 
     std::unique_ptr<Geometry> geometry;
     std::unique_ptr<Material> material;
 };
 
-
-
-using GlossyMeshFactory = parallel_mesh_factory<Mesh, Glossy, Sphere(Vector3<double>, double), Triangle>;
-using MatteMeshFactory = parallel_mesh_factory<Mesh, Matte, Sphere(Vector3<double>, double), Triangle(Vector3<double>, Vector3<double>, Vector3<double>)>;
+using GlossyMeshFactory = parallel_mesh_factory<Mesh, Glossy, Sphere(Vector3<double>, double), Triangle(Vector3<double>, Vector3<double>, Vector3<double>, Vector3<double>)>;
+using MatteMeshFactory = parallel_mesh_factory<Mesh, Matte, Sphere(Vector3<double>, double), Triangle(Vector3<double>, Vector3<double>, Vector3<double>, Vector3<double>)>;
 
 }  // namespace mpcs51045
 

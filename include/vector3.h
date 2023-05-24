@@ -185,7 +185,16 @@ struct Vector3 {
         return res;
     }
 
-    Vector3<T>& operator-=(Vector3<T> const& rhs) {
+    static Vector3<T> reflect(Vector3<T> const& dir, Vector3<T> const& normal) {
+        return dir - 2.0 * Vector3<T>::dot(dir, normal) * normal;
+    }
+
+    static Vector3<T> interpolate(Vector3<T> const& from, Vector3<T> const& to, double factor) {
+        return factor * from + (1.0 - factor) * to;
+    }
+
+    Vector3<T>&
+    operator-=(Vector3<T> const& rhs) {
         this->x = this->x - rhs.x;
         this->y = this->y - rhs.y;
         this->z = this->z - rhs.z;
@@ -266,7 +275,7 @@ template <typename T>
 Vector3<T> operator*(auto scalar, Vector3<T> const& rhs);
 
 template <typename T>
-Vector3<T> operator*(Vector3<T> const& lhs,auto scalar);
+Vector3<T> operator*(Vector3<T> const& lhs, auto scalar);
 
 template <typename T>
 Vector3<T> operator*(Vector3<T> const& lhs, Vector3<T> const& rhs);
@@ -278,6 +287,16 @@ template <typename T>
 std::ostream& operator<<(std::ostream& os, Vector3<T> const& v) {
     os << "<" << v.x << " " << v.y << " " << v.z << ">";
     return os;
+}
+
+template <typename T>
+inline bool operator==(Vector3<T> const& lhs, Vector3<T> const& rhs) {
+    return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+}
+
+template <typename T>
+inline bool operator!=(Vector3<T> const& lhs, Vector3<T> const& rhs) {
+    return !(lhs == rhs);
 }
 
 }  // namespace mpcs51045

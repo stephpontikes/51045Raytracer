@@ -26,8 +26,6 @@ class Graphics {
         if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
             cout << "SDL could not be initialized: " << SDL_GetError() << endl;
             return;
-        } else {
-            cout << "SDL is ready" << endl;
         }
 
         window = SDL_CreateWindow("Press Q to Quit", width, height, SDL_WINDOW_OPENGL);
