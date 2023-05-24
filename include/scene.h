@@ -5,6 +5,8 @@
 #include <execution>
 #include <iostream>
 #include <memory>
+#include <thread>
+#include <tuple>
 #include <vector>
 
 #include "camera.h"
@@ -27,10 +29,13 @@ using std::shared_ptr;
 using std::unique_ptr;
 using std::vector;
 
-constexpr int MAX_BOUNCE_COUNT = 3;
+// Increasing bounce count does not seem to impact performance
+constexpr int MAX_BOUNCE_COUNT = 5;
+// Increase in num rays per pixel has linear impact on performance
 constexpr auto NUM_RAYS_PER_PIXEL = 10;
 
-Vector3<double> bounceRay(Ray cameraRay, std::vector<unique_ptr<Mesh<Geometry, Material>>> const& objects) {
+Vector3<double> bounceRay(Ray cameraRay,
+                          std::vector<unique_ptr<Mesh<Geometry, Material>>> const& objects) {
     Vector3<double> incomingLight{0.0, 0.0, 0.0};
     for (int i = 0; i < MAX_BOUNCE_COUNT; i++) {
         auto hitTuple = getClosestHit(cameraRay, objects);
@@ -52,6 +57,34 @@ Vector3<double> bounceRay(Ray cameraRay, std::vector<unique_ptr<Mesh<Geometry, M
     return incomingLight;
 }
 
+void trace(int const& imgWidth, int const& imgHeight, int const& startIdx,
+           int const& endIdx, Camera& camera,
+           std::vector<unique_ptr<Mesh<Geometry, Material>>> const& objects,
+           Image& outputImage) {
+    double xFact = 1.0 / (static_cast<double>(imgWidth / 2.0));
+    double yFact = 1.0 / (static_cast<double>(imgHeight / 2.0));
+    for (int i = startIdx; i < endIdx; i++) {
+        auto x = i % imgWidth;
+        auto y = i / imgWidth;
+
+        Ray cameraRay;
+        double normX = static_cast<double>(x * xFact - 1.0);
+        double normY = static_cast<double>(y * yFact - 1.0);
+
+        Vector3<double> incomingLight;
+
+        for (int j = 0; j < NUM_RAYS_PER_PIXEL; j++) {
+            camera.createRay(normX, normY, cameraRay);
+            incomingLight += bounceRay(cameraRay, objects);
+        }
+
+        incomingLight /= NUM_RAYS_PER_PIXEL;
+        // cout << "Light at " << x << ", " << y << ": " << incomingLight << endl;
+        outputImage.setPixel(x, y, incomingLight.x, incomingLight.y,
+                             incomingLight.z);
+    }
+}
+
 class Scene {
    public:
     Scene() {
@@ -63,85 +96,95 @@ class Scene {
         camera.updateCameraGeometry();
 
         // Note: +x: right, +y: into screen, +z: down
-        // Sphere s{Vector3<double>{-1.5, 4.5, 0.5}, 0.5};
-        // Glossy g{Vector3<double>{255.0, 0.0, 255.0}};
+        auto pink = create<Mesh, Sphere, Glossy>(Vector3<double>(255.0, 0.0, 255.0),
+                                                 Vector3<double>(-1.0, 4.5, 0.5), 0.5);
+        auto base = create<Mesh, Sphere, Matte>(Vector3<double>(255.0, 0.0, 0.0),
+                                                Vector3<double>(0.0, 6.0, 11.0), 10.0);
+        auto green = create<Mesh, Sphere, Mirror>(Vector3<double>(0.0, 255.0, 0.0),
+                                                  Vector3<double>(0.5, 4.5, 0.5), 0.5);
+        auto blue = create<Mesh, Sphere, Matte>(Vector3<double>(0.0, 0.0, 255.0),
+                                                Vector3<double>(2.0, 4.5, 0.5), 0.5);
+        auto light = create<Mesh, Sphere, Light>(Vector3<double>(255.0, 255.0, 255.0),
+                                                 Vector3<double>(-9.0, 10.0, -9.0), 10.0);
+        auto light2 = create<Mesh, Sphere, Light>(Vector3<double>(255.0, 255.0, 255.0),
+                                                  Vector3<double>(6.5, 10.0, -6.5), 5.0);
 
-        // Sphere sl{Vector3<double>{-9.0, 10.0, -9.0}, 10.0};
-        // Light whiteLight{Vector3<double>{255.0, 255.0, 255.0}};
-
-        // Sphere s2{Vector3<double>{-0.25, 4.5, 0.5}, 0.5};
-        // Glossy green{Vector3<double>{0.0, 255.0, 0.0}};
-
-        // Sphere base{Vector3<double>{0.0, 6.0, 11.0}, 10.0};
-        // Glossy gr{Vector3<double>{255.0, 0.0, 0.0}};
-
-        // unique_ptr<GlossyMeshFactory> gmf = make_unique<GlossyMeshFactory>();
-        // auto gs = gmf->create<Sphere>
-        auto pink = create<Mesh, Sphere, Glossy>(Vector3<double>(255.0, 0.0, 255.0), Vector3<double>(-1.0, 4.5, 0.5), 0.5);
-        auto base = create<Mesh, Sphere, Glossy>(Vector3<double>(255.0, 0.0, 0.0), Vector3<double>(0.0, 6.0, 11.0), 10.0);
-        auto green = create<Mesh, Sphere, Glossy>(Vector3<double>(0.0, 255.0, 0.0), Vector3<double>(0.5, 4.5, 0.5), 0.5);
-        auto light = create<Mesh, Sphere, Light>(Vector3<double>(255.0, 255.0, 255.0), Vector3<double>(-9.0, 10.0, -9.0), 10.0);
-        // shared_ptr<Mesh<Geometry, Material>> shared = ptr;
-        // unique_ptr<Mesh<Geometry, Material>> ms = make_unique<Mesh<Geometry, Material>>(s, g);
-        // unique_ptr<Mesh<Geometry, Material>> msl = make_unique<Mesh<Geometry, Material>>(sl, whiteLight);
-        // unique_ptr<Mesh<Geometry, Material>> msbase = make_unique<Mesh<Geometry, Material>>(base, gr);
-        // unique_ptr<Mesh<Geometry, Material>> ms2 = make_unique<Mesh<Geometry, Material>>(s2, green);
-        // cout << "Before" << endl;
-        // cout << "hello " << gs->geometry->coordinates << endl;
-        // cout << "radius " << dynamic_cast<Sphere*>(gs->geometry.get())->radius << endl;
-        // objects.emplace_back(std::move(ms));
         objects.emplace_back(std::move(pink));
         objects.emplace_back(std::move(base));
         objects.emplace_back(std::move(green));
+        objects.emplace_back(std::move(blue));
         objects.emplace_back(std::move(light));
-        // Color first, then position, then radius
-        // meshFactory->create<Sphere>(Vector3<double>{255.0, 255.0, 255.0}, Vector3<double>{1.25, 0.0, 0.0}, 1.0));
-        // objects.push_back(make_shared<Mesh<Geometry, Material>>(mesh));
-        // objects.push_back(make_shared<Mesh<Geometry, Material>>(meshl));
+        objects.emplace_back(std::move(light2));
     }
 
     bool render(Image& outputImage) {
+        cout << "Rendering..." << endl;
         int imgWidth = outputImage.getWidth();
         int imgHeight = outputImage.getHeight();
 
-        // Loop over each pixel in the image
-        // Ray cameraRay;
-        // HitData hitData;
-        // Vector3<double> totalIncomingLight{0.0, 0.0, 0.0};
+        auto numBins = std::thread::hardware_concurrency();
+        // auto numBins = 1;
+        auto numPixels = imgWidth * imgHeight;
+        std::vector<std::pair<unsigned int, unsigned int>> ranges;
+        std::vector<std::thread> threads;
 
-        double xFact = 1.0 / (static_cast<double>(imgWidth / 2.0));
-        double yFact = 1.0 / (static_cast<double>(imgHeight / 2.0));
-
-        std::vector<int> widthIterator;
-        for (int i = 0; i < imgWidth; i++) {
-            widthIterator.push_back(i);
-        }
-        std::vector<int> heightIterator;
-        for (int i = 0; i < imgHeight; i++) {
-            heightIterator.push_back(i);
+        // Segments pixel indices into worker bins
+        for (unsigned int worker = 0; worker < numBins; worker++) {
+            ranges.push_back(std::pair<unsigned int, unsigned int>(
+                numPixels * worker / numBins,
+                numPixels * (worker + 1) / numBins));
         }
 
-        // TODO: parallel execution policy doesn't work on Apple
-        std::for_each(widthIterator.begin(), widthIterator.end(), [this, &heightIterator, &outputImage, &xFact, &yFact](double x) {
-            std::for_each(heightIterator.begin(), heightIterator.end(), [this, x, &outputImage, &xFact, &yFact](double y) {
-                Ray cameraRay;
-                double normX = static_cast<double>(x * xFact - 1.0);
-                double normY = static_cast<double>(y * yFact - 1.0);
+        // auto resultIdx = 0;
+        // for (auto& i : ranges) {
+        //     auto sw = i.first / imgWidth;
+        //     auto sh = i.first % imgWidth;
+        //     auto ew = i.second / imgWidth;
+        //     auto eh = i.second % imgWidth;
+        //     cout << "[(" << sh << ", " << sw << "), (" << eh << ", " << ew << ")"
+        //          << ")" << endl;
+        // }
 
-                Vector3<double> incomingLight;
+        // For each range of indices, run the trace for each
+        for (auto& r : ranges) {
+            auto si = r.first;
+            auto ei = r.second;
+            threads.push_back(
+                std::thread([this, si, ei, &imgWidth, &imgHeight, &outputImage]() {
+                    trace(imgWidth, imgHeight, si, ei, camera, objects, outputImage);
+                }));
+        }
 
-                for (int j = 0; j < NUM_RAYS_PER_PIXEL; j++) {
-                    camera.createRay(normX, normY, cameraRay);
-                    incomingLight += bounceRay(cameraRay, objects);
-                }
+        for (auto& t : threads) {
+            t.join();
+        }
+        cout << "Finished." << endl;
+        return true;
+    }
 
-                incomingLight /= NUM_RAYS_PER_PIXEL;
+    bool updateCameraPosition(SDL_Event* event) {
+        auto key = event->key.keysym.sym;
+        auto cameraPos = camera.getPosition();
 
-                // cout << "Light at " << x << ", " << y << ": " << incomingLight << endl;
-                outputImage.setPixel(x, y, incomingLight.x, incomingLight.y,
-                                     incomingLight.z);
-            });
-        });
+        switch (key) {
+            case SDLK_LEFT:
+                cameraPos.x += 1.0;
+                break;
+            case SDLK_RIGHT:
+                cameraPos.x -= 1.0;
+                break;
+            case SDLK_UP:
+                cameraPos.z += 1.0;
+                break;
+            case SDLK_DOWN:
+                cameraPos.z -= 1.0;
+                break;
+            default:
+                return false;
+        }
+
+        camera.setPosition(cameraPos);
+        camera.updateCameraGeometry();
 
         return true;
     }

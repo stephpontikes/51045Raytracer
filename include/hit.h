@@ -104,7 +104,8 @@ Vector3<double> handleHit(Ray& cameraRay,
     Vector3<double> diffuseDir = randomReboundDirection(hitData.hitNormal) + hitData.hitNormal;
     diffuseDir.normalize();
     Vector3<double> specularDir = Vector3<double>::reflect(cameraRay.direction, hitData.hitNormal);
-    cameraRay.direction = Vector3<double>::interpolate(diffuseDir, specularDir, material->reflectivity());
+    bool isSpecular = material->reflectivity() >= getRandomProbValue();
+    cameraRay.direction = Vector3<double>::interpolate(diffuseDir, specularDir, material->smoothness() * isSpecular);
     cameraRay.direction.normalize();
     // cout << "New Direction: " << cameraRay.direction << endl;
 
@@ -118,7 +119,9 @@ Vector3<double> handleHit(Ray& cameraRay,
     // incomingLight *= 255.0;
     // cout << "Incoming Light: " << incomingLight << endl;
     // cout << "Old Ray Color: " << cameraRay.color << endl;
-    cameraRay.color = (cameraRay.color * color) / 255.0;
+    Vector3<double> reflectivityColor = Vector3<double>::interpolate(color, Vector3<double>(255.0, 255.0, 255.0), isSpecular);
+    // cout << "Reflective Color: " << reflectivityColor << endl;
+    cameraRay.color = (cameraRay.color * reflectivityColor) / 255.0;
     // cout << "New Ray Color: " << cameraRay.color << endl;
 
     return incomingLight;

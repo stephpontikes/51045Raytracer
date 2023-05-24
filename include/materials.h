@@ -25,6 +25,7 @@ class Material {
     virtual std::unique_ptr<Material> clone() const = 0;
     virtual double reflectivity() = 0;
     virtual double luminosity() = 0;
+    virtual double smoothness() = 0;
     Vector3<double> color() { return mat_color; }
 
    private:
@@ -38,8 +39,21 @@ class Glossy : public Material {
     virtual std::unique_ptr<Material> clone() const override {
         return std::make_unique<Glossy>(*this);
     }
-    double reflectivity() override { return 0.9; }
+    double reflectivity() override { return 0.15; }
     double luminosity() override { return 0.0; }
+    double smoothness() override { return 1.0; }
+};
+
+class Mirror : public Material {
+   public:
+    Mirror(Vector3<double> c) : Material(c) {}
+
+    virtual std::unique_ptr<Material> clone() const override {
+        return std::make_unique<Mirror>(*this);
+    }
+    double reflectivity() override { return 1.0; }
+    double luminosity() override { return 0.0; }
+    double smoothness() override { return 1.0; }
 };
 
 class Matte : public Material {
@@ -49,8 +63,9 @@ class Matte : public Material {
     virtual std::unique_ptr<Material> clone() const override {
         return std::make_unique<Matte>(*this);
     }
-    double reflectivity() override { return 0.1; }
+    double reflectivity() override { return 0.0; }
     double luminosity() override { return 0.0; }
+    double smoothness() override { return 0.5; }
 };
 
 class Light : public Material {
@@ -62,6 +77,7 @@ class Light : public Material {
     }
     double reflectivity() override { return 0.0; }
     double luminosity() override { return 10.0; }
+    double smoothness() override { return 0.0; }
 };
 
 // using AbstractMaterialFactory = mpcs51045::abstract_factory<Material>;
