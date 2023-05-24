@@ -392,13 +392,6 @@
 #ifndef CL_HPP_
 #define CL_HPP_
 
-// MPCS51045: Needed to add this because values were not defined; macOS frozen
-// on OpenCL 1.2
-#if defined(__APPLE__) || defined(__MACOSX)
-#define CL_HPP_TARGET_OPENCL_VERSION 120
-#define CL_HPP_MINIMUM_OPENCL_VERSION 120
-#endif
-
 /* Handle deprecated preprocessor definitions. In each case, we only check for
  * the old name if the new name is not defined, so that user code can define
  * both and hence work with either version of the bindings.
