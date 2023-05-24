@@ -30,6 +30,29 @@ using std::vector;
 constexpr int MAX_BOUNCE_COUNT = 3;
 constexpr int NUM_RAYS_PER_PIXEL = 10;
 
+Vector3<double> bounceRay(Ray cameraRay, std::vector<unique_ptr<Mesh<Geometry, Material>>> const& objects) {
+    Vector3<double> incomingLight{0.0, 0.0, 0.0};
+
+    for (int i = 0; i < MAX_BOUNCE_COUNT; i++) {
+        auto hitTuple = getClosestHit(cameraRay, objects);
+        HitData hitData = hitTuple.first;
+        auto idx = hitTuple.second;
+        // cout << "index: " << idx << endl;
+
+        if (hitData.didHit && idx >= 0) {
+            auto& current = objects.at(idx);
+            // cout << current->geometry->coordinates << endl;
+            // cout << "Before: " << cameraRay << endl;
+            incomingLight += handleHit(cameraRay, current->material, hitData);
+            // cout << "After: " << cameraRay << endl;
+        } else {
+            break;
+        }
+    }
+
+    return incomingLight;
+}
+
 class Scene {
    public:
     Scene() {
@@ -94,35 +117,35 @@ class Scene {
 
                 totalIncomingLight = Vector3<double>{0.0, 0.0, 0.0};
 
-                // for (int j = 0; j < NUM_RAYS_PER_PIXEL; j++) {
-                camera.createRay(normX, normY, cameraRay);
+                for (int j = 0; j < NUM_RAYS_PER_PIXEL; j++) {
+                    camera.createRay(normX, normY, cameraRay);
 
-                std::array<Vector3<double>, NUM_RAYS_PER_PIXEL> lights;
-                std::array<Vector3<double>, NUM_RAYS_PER_PIXEL> iterator;
-                for_each(std::execution::par, iterator.begin(), iterator.end(), [cameraRay, this] { bounceRay(cameraRay, std::ref(objects)); });
-                totalIncomingLight = std::accumulate(lights.begin(), lights.end(), Vector3<double>());
+                    // std::array<Vector3<double>, NUM_RAYS_PER_PIXEL> lights;
+                    // std::array<Vector3<double>, NUM_RAYS_PER_PIXEL> iterator;
+                    // for_each(std::execution::par, iterator.begin(), iterator.end(), [cameraRay, this] { bounceRay(cameraRay, std::ref(objects)); });
+                    // totalIncomingLight = std::accumulate(lights.begin(), lights.end(), Vector3<double>());
+                    totalIncomingLight += bounceRay(cameraRay, objects);
+                    // for (int i = 0; i < MAX_BOUNCE_COUNT; i++) {
+                    //     auto hitTuple = getClosestHit(cameraRay, objects);
+                    //     hitData = hitTuple.first;
+                    //     auto idx = hitTuple.second;
+                    //     // cout << "index: " << idx << endl;
 
-                // for (int i = 0; i < MAX_BOUNCE_COUNT; i++) {
-                //     auto hitTuple = getClosestHit(cameraRay, objects);
-                //     hitData = hitTuple.first;
-                //     auto idx = hitTuple.second;
-                //     // cout << "index: " << idx << endl;
+                    //     if (hitData.didHit && idx >= 0) {
+                    //         auto& current = objects.at(idx);
+                    //         // cout << current->geometry->coordinates << endl;
+                    //         // cout << "Before: " << cameraRay << endl;
+                    //         Vector3<double> partialLight = handleHit(cameraRay, current->material, hitData);
+                    //         // cout << "After: " << cameraRay << endl;
+                    //         // cout << "New Light: " << partialLight << endl;
 
-                //     if (hitData.didHit && idx >= 0) {
-                //         auto& current = objects.at(idx);
-                //         // cout << current->geometry->coordinates << endl;
-                //         // cout << "Before: " << cameraRay << endl;
-                //         Vector3<double> partialLight = handleHit(cameraRay, current->material, hitData);
-                //         // cout << "After: " << cameraRay << endl;
-                //         // cout << "New Light: " << partialLight << endl;
+                    //         totalIncomingLight += partialLight;
 
-                //         totalIncomingLight += partialLight;
-
-                //     } else {
-                //         break;
-                //     }
-                // }
-                // }
+                    //     } else {
+                    //         break;
+                    //     }
+                    // }
+                }
 
                 totalIncomingLight /= NUM_RAYS_PER_PIXEL;
 
@@ -138,27 +161,6 @@ class Scene {
     Camera camera;
     std::vector<unique_ptr<Mesh<Geometry, Material>>> objects;
 };
-
-Vector3<double> bounceRay(Ray cameraRay, std::vector<unique_ptr<Mesh<Geometry, Material>>> const& objects) {
-    Vector3<double> incomingLight{0.0, 0.0, 0.0};
-
-    for (int i = 0; i < MAX_BOUNCE_COUNT; i++) {
-        auto hitTuple = getClosestHit(cameraRay, objects);
-        HitData hitData = hitTuple.first;
-        auto idx = hitTuple.second;
-        // cout << "index: " << idx << endl;
-
-        if (hitData.didHit && idx >= 0) {
-            auto& current = objects.at(idx);
-            // cout << current->geometry->coordinates << endl;
-            // cout << "Before: " << cameraRay << endl;
-            incomingLight += handleHit(cameraRay, current->material, hitData);
-            // cout << "After: " << cameraRay << endl;
-        } else {
-            break;
-        }
-    }
-}
 
 }  // namespace mpcs51045
 
