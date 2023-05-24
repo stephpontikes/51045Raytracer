@@ -42,17 +42,17 @@ using direct_bases_t = typename direct_bases<X, Candidates>::type;
 
 template<template<typename> class TTP, typename T> struct inheriter;
 template<template<typename> class TTP, typename ...Ts>
-struct inheriter<TTP, tuple<Ts...>> : virtual public TTP<Ts>... {};
+struct inheriter<TTP, typelist<Ts...>> : virtual public TTP<Ts>... {};
 
 template<template<class, class> class TTP, class SingleType, class TypeList> struct dual_inheriter;
 template<template<class, class> class TTP, typename T, typename... Ts>
-struct dual_inheriter<TTP, T, tuple<Ts...>>
+struct dual_inheriter<TTP, T, typelist<Ts...>>
     : virtual public TTP<Ts, T>... {};
 
 template<template<class, class> typename TTP, typename FirstList, typename SecondList> struct dual_multiple_inheriter;
 template<template<class, class> typename TTP, typename... Ts, typename... Us>
-struct dual_multiple_inheriter<TTP, tuple<Ts...>, tuple<Us...>>
-    : virtual public dual_inheriter<TTP, Us, tuple<Ts...>>... {};
+struct dual_multiple_inheriter<TTP, typelist<Ts...>, typelist<Us...>>
+    : virtual public dual_inheriter<TTP, Us, typelist<Ts...>>... {};
 
 
 template<template<typename> class TTP, class T, typename Candidates>

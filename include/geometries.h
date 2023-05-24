@@ -5,6 +5,7 @@
 
 #include "materials.h"
 #include "vector3.h"
+#include "variadics/variadic_examples.h"
 
 namespace mpcs51045 {
 // Edited geometry class to be a base class containing only a coordinate
@@ -89,7 +90,7 @@ using AbstractGeometryFactory = mpcs51045::abstract_factory<Geometry>;
 using GeometryFactory = mpcs51045::concrete_factory<AbstractGeometryFactory,
                                                     Sphere, Triangle>;
 
-using geometry_types = tuple<Geometry, Sphere, Triangle>;
+using geometry_types = typelist<Geometry, Sphere, Triangle>;
 
 }  // namespace mpcs51045
 

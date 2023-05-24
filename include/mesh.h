@@ -14,7 +14,9 @@ template <typename G, typename M>
 // requires (is_base_of_v<Geometry, G> &&
 //             is_base_of_v<Material, M>)
 struct Mesh
-    : mpcs51045::dual_multiple_inheriter<Mesh, direct_bases_t<G, geometry_types>, direct_bases_t<M, material_types> {
+    : dual_multiple_inheriter<Mesh, direct_bases_t<G, geometry_types>, direct_bases_t<M, material_types>> {
+    Mesh() = default;
+    
     template<typename... Ts>
     Mesh(Vector3<double> const& color, Ts&&... ts) {
         geometry = make_unique<G>(std::forward<Ts>(ts)...);

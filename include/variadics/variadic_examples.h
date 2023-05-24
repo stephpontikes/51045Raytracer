@@ -6,7 +6,7 @@ using std::enable_if_t;
 using std::true_type;
 using std::false_type;
 
-namespace mpcs {
+namespace mpcs51045 {
 template <typename... Ts> struct typelist {};
 // Declaration of Length template that calculates the number of parameters in a typelist
 template<typename T> struct Length;
@@ -24,7 +24,7 @@ template<class T, typename... Us>
 struct Length<typelist<T, Us...> >
 {
 	// We could just use sizeof...(Us),
-	// but let’s see how to do ourselves
+	// but letï¿½s see how to do ourselves
 	static int constexpr value = 1 + Length<typelist<Us...>>::value;
 };
 

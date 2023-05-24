@@ -3,6 +3,8 @@
 
 #include "factory.h"
 #include "vector3.h"
+#include "variadics/variadic_examples.h"
+
 
 /*
 Translucence
@@ -67,7 +69,7 @@ using AbstractMaterialFactory = mpcs51045::abstract_factory<Material>;
 using MaterialFactory = mpcs51045::concrete_factory<AbstractMaterialFactory,
                                                     Glossy, Matte>;
 
-using material_types = tuple<Material, Glossy, Matte>;                                                   
+using material_types = typelist<Material, Glossy, Matte>;                                                   
 
 }  // namespace mpcs51045
 
