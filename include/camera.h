@@ -94,7 +94,6 @@ class Camera {
 
         cameraRay.position = position;
         cameraRay.direction = dir;
-        cameraRay.bounce_count = 0;
         cameraRay.color = Vector3<double>{255.0, 255.0, 255.0};
         return true;
     }

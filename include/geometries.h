@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "materials.h"
-#include "vector3.h"
 #include "variadics/variadic_examples.h"
+#include "vector3.h"
 
 namespace mpcs51045 {
 // Edited geometry class to be a base class containing only a coordinate
@@ -83,12 +83,12 @@ class MultipleGeometry : public Ts... {
    public:
     // use overloading/type tags in base classes to get proper onhit behavior for each geometry
     // discuss w logan, possibly better design philosophies exist. but this uses advanced variadics
-    std::vector<unique_ptr<Geometry>> geometries;
+    std::vector<std::unique_ptr<Geometry>> geometries;
 };
 
-using AbstractGeometryFactory = mpcs51045::abstract_factory<Geometry>;
-using GeometryFactory = mpcs51045::concrete_factory<AbstractGeometryFactory,
-                                                    Sphere, Triangle>;
+// using AbstractGeometryFactory = mpcs51045::abstract_factory<Geometry>;
+// using GeometryFactory = mpcs51045::concrete_factory<AbstractGeometryFactory,
+//                                                     Sphere, Triangle>;
 
 using geometry_types = typelist<Geometry, Sphere, Triangle>;
 

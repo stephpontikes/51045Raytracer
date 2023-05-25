@@ -25,9 +25,9 @@ struct HitData {
 
 HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
     HitData result;
-    Sphere sphere = *dynamic_cast<Sphere*>(geom.get());
-
-    Vector3<double> offsetRayPos = ray.position - sphere.coordinates;
+    Sphere* sphere = dynamic_cast<Sphere*>(geom.get());
+    // cout << "pass" << (sphere == nullptr) << endl;
+    Vector3<double> offsetRayPos = ray.position - sphere->coordinates;
     Vector3<double> dir = ray.direction;
     dir.normalize();
 
@@ -35,7 +35,7 @@ HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
     double a = Vector3<double>::dot(dir, dir);
     double b = 2.0 * Vector3<double>::dot(offsetRayPos, dir);
     double c = Vector3<double>::dot(offsetRayPos, offsetRayPos) -
-               sphere.radius * sphere.radius;
+               sphere->radius * sphere->radius;
 
     double discriminant = b * b - 4.0 * a * c;
 
@@ -58,7 +58,7 @@ HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
         }
 
         result.hitPoint = ray.position + (dir * result.distance);
-        result.hitNormal = result.hitPoint - sphere.coordinates;
+        result.hitNormal = result.hitPoint - sphere->coordinates;
         result.hitNormal.normalize();
     } else {
         result.didHit = false;
@@ -68,7 +68,7 @@ HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
 }
 
 std::pair<HitData, int> getClosestHit(Ray& cameraRay,
-                                      std::vector<unique_ptr<Mesh<Geometry, Material>>>& objects) {
+                                      std::vector<unique_ptr<Mesh<Geometry, Material>>> const& objects) {
     HitData closestHit;
     HitData currentHit;
     int closestIndex = -1;
@@ -104,7 +104,8 @@ Vector3<double> handleHit(Ray& cameraRay,
     Vector3<double> diffuseDir = randomReboundDirection(hitData.hitNormal) + hitData.hitNormal;
     diffuseDir.normalize();
     Vector3<double> specularDir = Vector3<double>::reflect(cameraRay.direction, hitData.hitNormal);
-    cameraRay.direction = Vector3<double>::interpolate(diffuseDir, specularDir, material->reflectivity());
+    bool isSpecular = material->reflectivity() >= getRandomProbValue();
+    cameraRay.direction = Vector3<double>::interpolate(diffuseDir, specularDir, material->smoothness() * isSpecular);
     cameraRay.direction.normalize();
     // cout << "New Direction: " << cameraRay.direction << endl;
 
@@ -118,7 +119,9 @@ Vector3<double> handleHit(Ray& cameraRay,
     // incomingLight *= 255.0;
     // cout << "Incoming Light: " << incomingLight << endl;
     // cout << "Old Ray Color: " << cameraRay.color << endl;
-    cameraRay.color = (cameraRay.color * color) / 255.0;
+    Vector3<double> reflectivityColor = Vector3<double>::interpolate(color, Vector3<double>(255.0, 255.0, 255.0), isSpecular);
+    // cout << "Reflective Color: " << reflectivityColor << endl;
+    cameraRay.color = (cameraRay.color * reflectivityColor) / 255.0;
     // cout << "New Ray Color: " << cameraRay.color << endl;
 
     return incomingLight;

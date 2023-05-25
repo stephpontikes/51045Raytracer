@@ -70,10 +70,14 @@ class Graphics {
 
         image.init(renderer, width, height);
 
+        updateScene();
+    }
+
+    void updateScene() {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderClear(renderer);
 
-        scene.render(image);
+        scene.render(image, renderCount++);
 
         image.display();
 
@@ -103,31 +107,32 @@ class Graphics {
         //     cout << "mouse has been moved\n";
         // }
 
-        // Queries key presses
-        if (event->type == SDL_EVENT_KEY_DOWN) {
-            if (event->key.keysym.sym == SDLK_q) {
-                cout << "q was pressed, quitting..." << endl;
-                isRunning = false;
+        // Queries key presses (detects key up so one press is one adjustment,
+        // ignores holding down)
+        // Each branch has repeated body because you are unable to pass
+        // SDL_KeyCode to function
+        if (event->type == SDL_EVENT_KEY_UP) {
+            switch (event->key.keysym.sym) {
+                case SDLK_q:
+                    cout << "q was pressed, quitting..." << endl;
+                    isRunning = false;
+                    break;
+                case SDLK_LEFT:
+                case SDLK_RIGHT:
+                case SDLK_UP:
+                case SDLK_DOWN:
+                    cout << "arrow key pressed" << endl;
+                    scene.updateCameraPosition(event);
+                    updateScene();
+                    break;
+                default:
+                    break;
             }
         }
-
-        // Queries arrow keys
-        // const Uint8* state = SDL_GetKeyboardState(NULL);
-        // if (state[SDL_SCANCODE_RIGHT]) {
-        //     cout << "right arrow key is pressed\n";
-        // }
     }
 
     void render() {
-        // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        // SDL_RenderClear(renderer);
-
-        // scene.render(image);
-
-        // image.display();
-
-        // SDL_RenderPresent(renderer);
-        // SDL_GL_SwapWindow(window);
+        updateScene();
     }
 
     void quit() {
@@ -145,6 +150,7 @@ class Graphics {
     int height;
     bool isRunning = false;
     Image image;
+    int renderCount = 0;
     Scene scene;
 };
 
