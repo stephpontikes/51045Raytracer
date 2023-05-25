@@ -30,7 +30,7 @@ using std::unique_ptr;
 using std::vector;
 
 // Increasing bounce count does not seem to impact performance
-constexpr int MAX_BOUNCE_COUNT = 5;
+constexpr int MAX_BOUNCE_COUNT = 3;
 // Increase in num rays per pixel has linear impact on performance
 constexpr auto NUM_RAYS_PER_PIXEL = 10;
 
@@ -60,7 +60,7 @@ Vector3<double> bounceRay(Ray cameraRay,
 void trace(int const& imgWidth, int const& imgHeight, int const& startIdx,
            int const& endIdx, Camera& camera,
            std::vector<unique_ptr<Mesh<Geometry, Material>>> const& objects,
-           Image& outputImage) {
+           Image& outputImage, int const& renderCount) {
     double xFact = 1.0 / (static_cast<double>(imgWidth / 2.0));
     double yFact = 1.0 / (static_cast<double>(imgHeight / 2.0));
     for (int i = startIdx; i < endIdx; i++) {
@@ -80,8 +80,20 @@ void trace(int const& imgWidth, int const& imgHeight, int const& startIdx,
 
         incomingLight /= NUM_RAYS_PER_PIXEL;
         // cout << "Light at " << x << ", " << y << ": " << incomingLight << endl;
-        outputImage.setPixel(x, y, incomingLight.x, incomingLight.y,
-                             incomingLight.z);
+
+        if (!renderCount) {
+            outputImage.setPixel(x, y, incomingLight.x, incomingLight.y,
+                                 incomingLight.z);
+        } else {
+            auto currentPixel = outputImage.getPixel(x, y);
+            if (x == 0 && y == 0)
+                cout << "render count: " << renderCount << endl;
+            currentPixel = ((currentPixel * renderCount) +
+                            (1 / renderCount) * incomingLight) /
+                           (renderCount + 1);
+            outputImage.setPixel(x, y, currentPixel.x, currentPixel.y,
+                                 currentPixel.z);
+        }
     }
 }
 
@@ -108,16 +120,44 @@ class Scene {
                                                  Vector3<double>(-9.0, 10.0, -9.0), 10.0);
         auto light2 = create<Mesh, Sphere, Light>(Vector3<double>(255.0, 255.0, 255.0),
                                                   Vector3<double>(6.5, 10.0, -6.5), 5.0);
+        auto triangle = create<Mesh, Triangle, Matte>(Vector3<double>(255.0, 255.0, 0.0),
+                                                      Vector3<double>(0.0, 0.0, 0.0),
+                                                      Vector3<double>(-0.5, -1.0, 0.0),
+                                                      Vector3<double>(-1.0, 1.0, 0.0),
+                                                      Vector3<double>(0.0, 0.0, -0.5));
+        auto triangle2 = create<Mesh, Triangle, Matte>(Vector3<double>(255.0, 255.0, 0.0),
+                                                       Vector3<double>(0.0, 0.0, 0.0),
+                                                       Vector3<double>(-1.0, 0.0, 0.0),
+                                                       Vector3<double>(0.0, -1.0, 0.0),
+                                                       Vector3<double>(1.0, 0.0, 0.0));
+
+        // unique_ptr<GlossyMeshFactory> factory = make_unique<GlossyMeshFactory>();
+        // auto sphere = factory->create<Sphere>(Vector3<double>(255.0, 255.0, 0.0),
+        //                                       Vector3<double>(), 1.0);
+        // cout << "is null: " << sphere->geometry->coordinates << endl;
+
+        // Triangle t1{Vector3<double>(0.0, 0.0, 0.0),
+        //             Vector3<double>(-0.5, -1.0, 0.0),
+        //             Vector3<double>(-1.0, 1.0, 0.0),
+        //             Vector3<double>(0.0, 0.0, -0.5)};
+        // Triangle t2{Vector3<double>(0.0, 0.0, 0.0),
+        //             Vector3<double>(-0.5, -1.0, 0.0),
+        //             Vector3<double>(1.0, 1.0, 0.0),
+        //             Vector3<double>(0.0, 0.0, -0.5)};
+        // vector<Triangle> prismVec{t1, t2};
+        // ComplexGeometry prism(Vector3<double>(0.0, 0.0, 0.0), prismVec);
 
         objects.emplace_back(std::move(pink));
-        objects.emplace_back(std::move(base));
-        objects.emplace_back(std::move(green));
-        objects.emplace_back(std::move(blue));
+        // objects.emplace_back(std::move(base));
+        // objects.emplace_back(std::move(green));
+        // objects.emplace_back(std::move(blue));
         objects.emplace_back(std::move(light));
-        objects.emplace_back(std::move(light2));
+        // objects.emplace_back(std::move(light2));
+        // objects.emplace_back(std::move(triangle));
+        // objects.emplace_back(std::move(triangle2));
     }
 
-    bool render(Image& outputImage) {
+    bool render(Image& outputImage, int const& renderCount) {
         cout << "Rendering..." << endl;
         int imgWidth = outputImage.getWidth();
         int imgHeight = outputImage.getHeight();
@@ -150,8 +190,8 @@ class Scene {
             auto si = r.first;
             auto ei = r.second;
             threads.push_back(
-                std::thread([this, si, ei, &imgWidth, &imgHeight, &outputImage]() {
-                    trace(imgWidth, imgHeight, si, ei, camera, objects, outputImage);
+                std::thread([this, si, ei, &imgWidth, &imgHeight, &outputImage, renderCount]() {
+                    trace(imgWidth, imgHeight, si, ei, camera, objects, outputImage, renderCount);
                 }));
         }
 

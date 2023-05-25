@@ -77,7 +77,7 @@ class Graphics {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderClear(renderer);
 
-        scene.render(image);
+        scene.render(image, renderCount++);
 
         image.display();
 
@@ -132,8 +132,7 @@ class Graphics {
     }
 
     void render() {
-        // updateScene();
-        // SDL_GL_SwapWindow(window);
+        updateScene();
     }
 
     void quit() {
@@ -151,6 +150,7 @@ class Graphics {
     int height;
     bool isRunning = false;
     Image image;
+    int renderCount = 0;
     Scene scene;
 };
 
