@@ -6,6 +6,8 @@
 #include <iterator>
 #include <vector>
 
+#include "vector3.h"
+
 namespace mpcs51045 {
 
 using std::vector;
@@ -44,6 +46,12 @@ class Image {
         rChannel.at(x).at(y) = red;
         gChannel.at(x).at(y) = green;
         bChannel.at(x).at(y) = blue;
+    }
+
+    Vector3<double> getPixel(int const x, int const y) {
+        return Vector3<double>(rChannel.at(x).at(y),
+                               gChannel.at(x).at(y),
+                               bChannel.at(x).at(y));
     }
 
     void display() {

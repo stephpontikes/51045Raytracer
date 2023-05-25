@@ -189,8 +189,12 @@ struct Vector3 {
         return dir - 2.0 * Vector3<T>::dot(dir, normal) * normal;
     }
 
+    static T interpolate(T const& from, T const& to, double factor) {
+        return (1.0 - factor) * from + factor * to;
+    }
+
     static Vector3<T> interpolate(Vector3<T> const& from, Vector3<T> const& to, double factor) {
-        return factor * from + (1.0 - factor) * to;
+        return Vector3<T>(interpolate(from.x, to.x, factor), interpolate(from.y, to.y, factor), interpolate(from.z, to.z, factor));
     }
 
     Vector3<T>&

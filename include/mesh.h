@@ -5,17 +5,19 @@
 
 #include "geometries.h"
 #include "materials.h"
-
-using std::is_base_of_v;
-using std::is_same;
-using std::negation_v;
+#include "variadics/my_type_traits.h"
 
 namespace mpcs51045 {
+
+
 template <typename G, typename M>
 // requires (is_base_of_v<Geometry, G> &&
 //             is_base_of_v<Material, M>)
-struct Mesh {
-    template <typename... Ts>
+struct Mesh
+    : dual_multiple_inheriter<Mesh, direct_bases_t<G, geometry_types>, direct_bases_t<M, material_types>> {
+    Mesh() = default;
+    
+    template<typename... Ts>
     Mesh(Vector3<double> const& color, Ts&&... ts) {
         geometry = make_unique<G>(std::forward<Ts>(ts)...);
         material = make_unique<M>(color);
