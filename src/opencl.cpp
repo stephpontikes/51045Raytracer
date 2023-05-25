@@ -7,8 +7,6 @@
 #include <iostream>
 #include <vector>
 
-#include "opencl.hpp"
-
 using namespace cl;
 using namespace std;
 

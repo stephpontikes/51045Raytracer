@@ -86,39 +86,27 @@ class Light : public Material {
 //                                                     Glossy, Matte>;
 
 GlossyCL toCL(Glossy& mat) {
-    auto matColor = mat.color();
-    cl_float3 color{matColor.x, matColor.y, matColor.z};
-
-    return GlossyCL{color, cl_float{mat.reflectivity()},
-                    cl_float{mat.luminosity()},
-                    cl_float{mat.smoothness()}};
+    return GlossyCL{toCL(mat.color()), static_cast<cl_float>(mat.reflectivity()),
+                    static_cast<cl_float>(mat.luminosity()),
+                    static_cast<cl_float>(mat.smoothness())};
 }
 
 MatteCL toCL(Matte& mat) {
-    auto matColor = mat.color();
-    cl_float3 color{matColor.x, matColor.y, matColor.z};
-
-    return MatteCL{color, cl_float{mat.reflectivity()},
-                   cl_float{mat.luminosity()},
-                   cl_float{mat.smoothness()}};
+    return MatteCL{toCL(mat.color()), static_cast<cl_float>(mat.reflectivity()),
+                   static_cast<cl_float>(mat.luminosity()),
+                   static_cast<cl_float>(mat.smoothness())};
 }
 
 MirrorCL toCL(Mirror& mat) {
-    auto matColor = mat.color();
-    cl_float3 color{matColor.x, matColor.y, matColor.z};
-
-    return MirrorCL{color, cl_float{mat.reflectivity()},
-                    cl_float{mat.luminosity()},
-                    cl_float{mat.smoothness()}};
+    return MirrorCL{toCL(mat.color()), static_cast<cl_float>(mat.reflectivity()),
+                    static_cast<cl_float>(mat.luminosity()),
+                    static_cast<cl_float>(mat.smoothness())};
 }
 
 LightCL toCL(Light& mat) {
-    auto matColor = mat.color();
-    cl_float3 color{matColor.x, matColor.y, matColor.z};
-
-    return LightCL{color, cl_float{mat.reflectivity()},
-                   cl_float{mat.luminosity()},
-                   cl_float{mat.smoothness()}};
+    return LightCL{toCL(mat.color()), static_cast<cl_float>(mat.reflectivity()),
+                   static_cast<cl_float>(mat.luminosity()),
+                   static_cast<cl_float>(mat.smoothness())};
 }
 
 using material_types = typelist<Material, Glossy, Matte>;

@@ -122,7 +122,6 @@ int main() {
     cout << vec.s[0] << endl;
     cout << vec.s[1] << endl;
     cout << vec.s[2] << endl;
-    cout << (vec * vec).s[2] << endl;
 
     // runGL();
 

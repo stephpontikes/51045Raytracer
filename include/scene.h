@@ -22,6 +22,11 @@
 using namespace mpcs51045;
 using std::for_each;
 
+Sphere s{Vector3<double>(-1.0, 4.5, 0.5), 0.5};
+Glossy g{Vector3<double>(255.0, 0.0, 255.0)};
+SphereCL scl{toCL(s, g)};
+std::vector<SphereCL> clSpheres{scl, scl, scl};
+
 namespace mpcs51045 {
 
 using std::cout;
@@ -235,11 +240,11 @@ class Scene {
         err = clSetKernelArg(rendererKernel, 0, sizeof(cl_mem), (void*)&screen_buffer);
         err |= clSetKernelArg(rendererKernel, 1, sizeof(cl_mem), (void*)&spheres_buffer);
         err |= clSetKernelArg(rendererKernel, 2, sizeof(size_t), (void*)&len);
-        err != clSetKernelArg(rendererKernel, 3, sizeof(CameraCL), (void*)&cameracl);
+        err |= clSetKernelArg(rendererKernel, 3, sizeof(CameraCL), (void*)&cameracl);
 
         size_t globalWorkSize[2] = {
-            imgWidth,
-            imgHeight};
+            static_cast<size_t>(imgWidth),
+            static_cast<size_t>(imgHeight)};
 
         size_t localWorkSize[2] = {
             16, 16};
@@ -321,11 +326,6 @@ class Scene {
     Camera camera;
     std::vector<unique_ptr<Mesh<Geometry, Material>>> objects;
 };
-
-Sphere s{Vector3<double>(-1.0, 4.5, 0.5), 0.5};
-Glossy g{Vector3<double>(255.0, 0.0, 255.0)};
-SphereCL scl{toCL(s, g)};
-std::vector<SphereCL> clSpheres{scl, scl, scl};
 
 }  // namespace mpcs51045
 

@@ -146,7 +146,7 @@ HitDataCL toCL(HitData& hitData) {
     auto point = hitData.hitPoint;
     auto norm = hitData.hitNormal;
 
-    HitDataCL result = {hitData.didHit, cl_float{hitData.distance},
+    HitDataCL result = {hitData.didHit, static_cast<cl_float>(hitData.distance),
                         toCL(hitData.hitPoint), toCL(hitData.hitNormal)};
     return result;
 }
