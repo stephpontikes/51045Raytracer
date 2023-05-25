@@ -6,6 +6,7 @@
 #include "geometries.h"
 #include "materials.h"
 #include "mesh.h"
+#include "opencl_struct.h"
 #include "random.h"
 #include "vector3.h"
 
@@ -139,6 +140,15 @@ std::ostream& operator<<(std::ostream& os, HitData hd) {
     os << "    hitNormal: " << hd.hitNormal << endl;
     os << ")" << endl;
     return os;
+}
+
+HitDataCL toCL(HitData& hitData) {
+    auto point = hitData.hitPoint;
+    auto norm = hitData.hitNormal;
+
+    HitDataCL result = {hitData.didHit, cl_float{hitData.distance},
+                        toCL(hitData.hitPoint), toCL(hitData.hitNormal)};
+    return result;
 }
 
 }  // namespace mpcs51045

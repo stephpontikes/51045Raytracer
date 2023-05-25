@@ -4,11 +4,12 @@
 #include <iostream>
 #include <memory>
 
-#include "CL/opencl.hpp"
 #include "camera.h"
 #include "factory.h"
 #include "graphics.h"
 #include "mesh.h"
+#include "opencl.cpp"
+#include "opencl_struct.h"
 #include "ray.h"
 #include "vector3.h"
 
@@ -91,7 +92,7 @@ int main() {
     int windowHeight = 720;
 
     // unique_ptr<GlossyMeshFactory> gmf = make_unique<GlossyMeshFactory>();
-    auto gs = create<Mesh, Sphere, Glossy>(Vector3<double>(255.0, 0.0, 255.0), Vector3<double>(0.0, 5.0, 0.0), 1.0);
+    // auto gs = create<Mesh, Sphere, Glossy>(Vector3<double>(255.0, 0.0, 255.0), Vector3<double>(0.0, 5.0, 0.0), 1.0);
     // std::cout << gs->geometry->coordinates << std::endl;
 
     // std::cout << gs->material->color() << std::endl;
@@ -110,10 +111,20 @@ int main() {
 
     // return 0;
 
-    auto start = high_resolution_clock::now();
-    unique_ptr<Graphics> graphics = make_unique<Graphics>(windowWidth,
-                                                          windowHeight);
-    cout << "Render Time: " << duration_cast<milliseconds>(high_resolution_clock::now() - start).count() << "ms" << endl;
+    // auto start = high_resolution_clock::now();
+    // unique_ptr<Graphics> graphics = make_unique<Graphics>(windowWidth,
+    //                                                       windowHeight);
+    // cout << "Render Time: " << duration_cast<milliseconds>(high_resolution_clock::now() - start).count() << "ms" << endl;
 
-    graphics->run();
+    // graphics->run();
+
+    cl_float3 vec{1.0, 2.0, 3.0};
+    cout << vec.s[0] << endl;
+    cout << vec.s[1] << endl;
+    cout << vec.s[2] << endl;
+    cout << (vec * vec).s[2] << endl;
+
+    // runGL();
+
+    return 0;
 }

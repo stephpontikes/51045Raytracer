@@ -5,6 +5,8 @@
 #include <execution>
 #include <iostream>
 #include <memory>
+#include <sstream>
+#include <string>
 #include <thread>
 #include <tuple>
 #include <vector>
@@ -13,6 +15,7 @@
 #include "hit.h"
 #include "image.h"
 #include "mesh.h"
+#include "opencl_struct.h"
 #include "random.h"
 #include "ray.h"
 
@@ -158,46 +161,131 @@ class Scene {
     }
 
     bool render(Image& outputImage, int const& renderCount) {
-        cout << "Rendering..." << endl;
+        cl_platform_id platform;
+        cl_device_id device;
+        cl_context context;
+        cl_command_queue commands;
+
+        cl_program program;
+        // Kernels
+        cl_kernel rendererKernel;
+        cl_kernel presentKernel;
+        // Buffers
+        cl_mem screen_buffer;
+        cl_mem spheres_buffer;
+        cl_mem screen;
+
+        std::vector<cl_platform_id> platforms;
+
+        cl_uint length;
+        cl_int err;
+
+        clGetPlatformIDs(0, 0, &length);
+        platforms.resize(length);
+        clGetPlatformIDs(platforms.size(), platforms.data(), 0);
+
+        for (int i = 0; i < platforms.size(); i++) {
+            std::vector<cl_device_id> devices;
+
+            clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, 0, 0, &length);
+            devices.resize(length);
+            clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, devices.size(), devices.data(), 0);
+
+            if (devices.size() > 0) {
+                device = devices[0];
+                platform = platforms[i];
+                break;
+            }
+        }
+
+        context = clCreateContext(0, 1, &device, nullptr, nullptr, &err);
+        commands = clCreateCommandQueue(context, device, 0, &err);
+
+        std::ifstream in("../cl_src/gpu.cl");
+        std::stringstream ss;
+        std::string temp;
+
+        while (std::getline(in, temp)) {
+            ss << temp << std::endl;
+        }
+
+        in.close();
+
+        std::string src = ss.str();
+        const char* c_src = src.c_str();
+
         int imgWidth = outputImage.getWidth();
         int imgHeight = outputImage.getHeight();
 
-        auto numBins = std::thread::hardware_concurrency();
-        // auto numBins = 1;
-        auto numPixels = imgWidth * imgHeight;
-        std::vector<std::pair<unsigned int, unsigned int>> ranges;
-        std::vector<std::thread> threads;
+        cl_uint size = imgWidth * imgHeight;
+        screen_buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, size * sizeof(ColorCL), nullptr, &err);
+        spheres_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, clSpheres.size() * sizeof(SphereCL), clSpheres.data(), &err);
 
-        // Segments pixel indices into worker bins
-        for (unsigned int worker = 0; worker < numBins; worker++) {
-            ranges.push_back(std::pair<unsigned int, unsigned int>(
-                numPixels * worker / numBins,
-                numPixels * (worker + 1) / numBins));
-        }
+        // get program using ifstream
+        // here, c_src is just the result of streaming the source file into a string
+        program = clCreateProgramWithSource(context, 1, &c_src, nullptr, &err);
 
-        // auto resultIdx = 0;
-        // for (auto& i : ranges) {
-        //     auto sw = i.first / imgWidth;
-        //     auto sh = i.first % imgWidth;
-        //     auto ew = i.second / imgWidth;
-        //     auto eh = i.second % imgWidth;
-        //     cout << "[(" << sh << ", " << sw << "), (" << eh << ", " << ew << ")"
-        //          << ")" << endl;
+        err = clBuildProgram(program, 0, nullptr, nullptr, nullptr, nullptr);
+
+        rendererKernel = clCreateKernel(program, "renderer", &err);
+
+        size_t len = clSpheres.size();
+        CameraCL cameracl = toCL(camera);
+
+        err = clSetKernelArg(rendererKernel, 0, sizeof(cl_mem), (void*)&screen_buffer);
+        err |= clSetKernelArg(rendererKernel, 1, sizeof(cl_mem), (void*)&spheres_buffer);
+        err |= clSetKernelArg(rendererKernel, 2, sizeof(size_t), (void*)&len);
+        err != clSetKernelArg(rendererKernel, 3, sizeof(CameraCL), (void*)&cameracl);
+
+        size_t globalWorkSize[2] = {
+            imgWidth,
+            imgHeight};
+
+        size_t localWorkSize[2] = {
+            16, 16};
+
+        err = clEnqueueNDRangeKernel(commands, rendererKernel, 2, nullptr, globalWorkSize, localWorkSize, 0, nullptr, nullptr);
+
+        cout << "Rendering..." << endl;
+
+        err = clFinish(commands);
+
+        // auto numBins = std::thread::hardware_concurrency();
+        // // auto numBins = 1;
+        // auto numPixels = imgWidth * imgHeight;
+        // std::vector<std::pair<unsigned int, unsigned int>> ranges;
+        // std::vector<std::thread> threads;
+
+        // // Segments pixel indices into worker bins
+        // for (unsigned int worker = 0; worker < numBins; worker++) {
+        //     ranges.push_back(std::pair<unsigned int, unsigned int>(
+        //         numPixels * worker / numBins,
+        //         numPixels * (worker + 1) / numBins));
         // }
 
-        // For each range of indices, run the trace for each
-        for (auto& r : ranges) {
-            auto si = r.first;
-            auto ei = r.second;
-            threads.push_back(
-                std::thread([this, si, ei, &imgWidth, &imgHeight, &outputImage, renderCount]() {
-                    trace(imgWidth, imgHeight, si, ei, camera, objects, outputImage, renderCount);
-                }));
-        }
+        // // auto resultIdx = 0;
+        // // for (auto& i : ranges) {
+        // //     auto sw = i.first / imgWidth;
+        // //     auto sh = i.first % imgWidth;
+        // //     auto ew = i.second / imgWidth;
+        // //     auto eh = i.second % imgWidth;
+        // //     cout << "[(" << sh << ", " << sw << "), (" << eh << ", " << ew << ")"
+        // //          << ")" << endl;
+        // // }
 
-        for (auto& t : threads) {
-            t.join();
-        }
+        // // For each range of indices, run the trace for each
+        // for (auto& r : ranges) {
+        //     auto si = r.first;
+        //     auto ei = r.second;
+        //     threads.push_back(
+        //         std::thread([this, si, ei, &imgWidth, &imgHeight, &outputImage, renderCount]() {
+        //             trace(imgWidth, imgHeight, si, ei, camera, objects, outputImage, renderCount);
+        //         }));
+        // }
+
+        // for (auto& t : threads) {
+        //     t.join();
+        // }
         cout << "Finished." << endl;
         return true;
     }
@@ -233,6 +321,11 @@ class Scene {
     Camera camera;
     std::vector<unique_ptr<Mesh<Geometry, Material>>> objects;
 };
+
+Sphere s{Vector3<double>(-1.0, 4.5, 0.5), 0.5};
+Glossy g{Vector3<double>(255.0, 0.0, 255.0)};
+SphereCL scl{toCL(s, g)};
+std::vector<SphereCL> clSpheres{scl, scl, scl};
 
 }  // namespace mpcs51045
 

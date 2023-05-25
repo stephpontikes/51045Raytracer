@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "materials.h"
+#include "opencl_struct.h"
 #include "variadics/variadic_examples.h"
 #include "vector3.h"
 
@@ -89,6 +90,20 @@ class MultipleGeometry : public Ts... {
 // using AbstractGeometryFactory = mpcs51045::abstract_factory<Geometry>;
 // using GeometryFactory = mpcs51045::concrete_factory<AbstractGeometryFactory,
 //                                                     Sphere, Triangle>;
+
+SphereCL toCL(Sphere& geom, Material& mat) {
+    cl_float3 pos{geom.coordinates.x, geom.coordinates.y, geom.coordinates.z};
+    auto matColor = mat.color();
+    cl_float3 color{matColor.x, matColor.y, matColor.z};
+    return SphereCL{pos, cl_float{geom.radius}, color,
+                    cl_float{mat.reflectivity()},
+                    cl_float{mat.luminosity()},
+                    cl_float{mat.smoothness()}};
+}
+
+TriangleCL toCL(Triangle& geom) {
+    return TriangleCL{toCL(geom.coordinates), toCL(geom.v1), toCL(geom.v2), toCL(geom.v3)};
+}
 
 using geometry_types = typelist<Geometry, Sphere, Triangle>;
 

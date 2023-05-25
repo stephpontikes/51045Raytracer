@@ -2,6 +2,7 @@
 #define MATERIALS_H
 
 #include "factory.h"
+#include "opencl_struct.h"
 #include "variadics/variadic_examples.h"
 #include "vector3.h"
 
@@ -19,7 +20,7 @@ namespace mpcs51045 {
 
 class Material {
    public:
-    Material(Vector3<double> const &c) : mat_color(c) {}
+    Material(Vector3<double> const& c) : mat_color(c) {}
     virtual ~Material() = default;
 
     virtual std::unique_ptr<Material> clone() const = 0;
@@ -83,6 +84,42 @@ class Light : public Material {
 // using AbstractMaterialFactory = mpcs51045::abstract_factory<Material>;
 // using MaterialFactory = mpcs51045::concrete_factory<AbstractMaterialFactory,
 //                                                     Glossy, Matte>;
+
+GlossyCL toCL(Glossy& mat) {
+    auto matColor = mat.color();
+    cl_float3 color{matColor.x, matColor.y, matColor.z};
+
+    return GlossyCL{color, cl_float{mat.reflectivity()},
+                    cl_float{mat.luminosity()},
+                    cl_float{mat.smoothness()}};
+}
+
+MatteCL toCL(Matte& mat) {
+    auto matColor = mat.color();
+    cl_float3 color{matColor.x, matColor.y, matColor.z};
+
+    return MatteCL{color, cl_float{mat.reflectivity()},
+                   cl_float{mat.luminosity()},
+                   cl_float{mat.smoothness()}};
+}
+
+MirrorCL toCL(Mirror& mat) {
+    auto matColor = mat.color();
+    cl_float3 color{matColor.x, matColor.y, matColor.z};
+
+    return MirrorCL{color, cl_float{mat.reflectivity()},
+                    cl_float{mat.luminosity()},
+                    cl_float{mat.smoothness()}};
+}
+
+LightCL toCL(Light& mat) {
+    auto matColor = mat.color();
+    cl_float3 color{matColor.x, matColor.y, matColor.z};
+
+    return LightCL{color, cl_float{mat.reflectivity()},
+                   cl_float{mat.luminosity()},
+                   cl_float{mat.smoothness()}};
+}
 
 using material_types = typelist<Material, Glossy, Matte>;
 

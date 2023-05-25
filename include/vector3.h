@@ -303,6 +303,11 @@ inline bool operator!=(Vector3<T> const& lhs, Vector3<T> const& rhs) {
     return !(lhs == rhs);
 }
 
+template <typename T>
+cl_float3 toCL(Vector3<T> const& v) {
+    return cl_float3{v.x, v.y, v.z};
+}
+
 }  // namespace mpcs51045
 
 #endif
