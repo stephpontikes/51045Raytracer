@@ -77,6 +77,15 @@ class Image {
         SDL_RenderTexture(renderer, texture, &srcRect, &bounds);
     }
 
+    void updateColorChannels(std::vector<ColorCL> colors) {
+        for (int w = 0; w < width; w++) {
+            for (int h = 0; h < height; h++) {
+                auto pixel = colors.at(h * width + w).rgb.s;
+                this->setPixel(w, h, pixel[0], pixel[1], pixel[2]);
+            }
+        }
+    }
+
    private:
     Uint32 rgbToInt32(double const red, double const green, double const blue) {
         unsigned char r = static_cast<unsigned char>(red);
@@ -110,7 +119,6 @@ class Image {
         SDL_DestroySurface(tempSurface);
     }
 
-   private:
     std::vector<std::vector<double>> rChannel;
     std::vector<std::vector<double>> gChannel;
     std::vector<std::vector<double>> bChannel;
@@ -121,6 +129,17 @@ class Image {
     SDL_Renderer *renderer;
     SDL_Texture *texture;
 };
+
+std::vector<ColorCL> toCL(Image &image) {
+    std::vector<ColorCL> result;
+    for (int x = 0; x < image.getWidth(); x++) {
+        for (int y = 0; y < image.getHeight(); y++) {
+            ColorCL color = {toCL(image.getPixel(x, y))};
+        }
+    }
+
+    return result;
+}
 
 }  // namespace mpcs51045
 

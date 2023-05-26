@@ -1,6 +1,7 @@
 #ifndef OPENCL_STRUCT_H
 #define OPENCL_STRUCT_H
 
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #include "CL/opencl.hpp"
 
 typedef struct ColorCL {

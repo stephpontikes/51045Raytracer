@@ -78,12 +78,10 @@ class ComplexGeometry : public Geometry {
     std::vector<Triangle> triangles;
 };
 
-// Visit method calls visit method on each geometry in mesh
 template <typename... Ts>
 class MultipleGeometry : public Ts... {
    public:
     // use overloading/type tags in base classes to get proper onhit behavior for each geometry
-    // discuss w logan, possibly better design philosophies exist. but this uses advanced variadics
     std::vector<std::unique_ptr<Geometry>> geometries;
 };
 

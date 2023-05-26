@@ -23,9 +23,9 @@ using namespace mpcs51045;
 using std::for_each;
 
 Sphere s{Vector3<double>(-1.0, 4.5, 0.5), 0.5};
-Glossy g{Vector3<double>(255.0, 0.0, 255.0)};
-SphereCL scl{toCL(s, g)};
-std::vector<SphereCL> clSpheres{scl, scl, scl};
+Sphere sl2{Vector3<double>(2.0, 0.0, 0.0), 1.0};
+Light l{Vector3<double>(0.0, 255.0, 255.0)};
+std::vector<SphereCL> clSpheres{toCL(sl2, l), toCL(s, l)};
 
 namespace mpcs51045 {
 
@@ -37,9 +37,7 @@ using std::shared_ptr;
 using std::unique_ptr;
 using std::vector;
 
-// Increasing bounce count does not seem to impact performance
-constexpr int MAX_BOUNCE_COUNT = 3;
-// Increase in num rays per pixel has linear impact on performance
+constexpr int MAX_BOUNCE_COUNT = 5;
 constexpr auto NUM_RAYS_PER_PIXEL = 10;
 
 Vector3<double> bounceRay(Ray cameraRay,
@@ -49,14 +47,10 @@ Vector3<double> bounceRay(Ray cameraRay,
         auto hitTuple = getClosestHit(cameraRay, objects);
         HitData hitData = hitTuple.first;
         auto idx = hitTuple.second;
-        // cout << "index: " << idx << endl;
 
         if (hitData.didHit && idx >= 0) {
             auto& current = objects.at(idx);
-            // cout << current->geometry->coordinates << endl;
-            // cout << "Before: " << cameraRay << endl;
             incomingLight += handleHit(cameraRay, current->material, hitData);
-            // cout << "After: " << cameraRay << endl;
         } else {
             break;
         }
@@ -87,21 +81,9 @@ void trace(int const& imgWidth, int const& imgHeight, int const& startIdx,
         }
 
         incomingLight /= NUM_RAYS_PER_PIXEL;
-        // cout << "Light at " << x << ", " << y << ": " << incomingLight << endl;
 
-        if (!renderCount) {
-            outputImage.setPixel(x, y, incomingLight.x, incomingLight.y,
-                                 incomingLight.z);
-        } else {
-            auto currentPixel = outputImage.getPixel(x, y);
-            if (x == 0 && y == 0)
-                cout << "render count: " << renderCount << endl;
-            currentPixel = ((currentPixel * renderCount) +
-                            (1 / renderCount) * incomingLight) /
-                           (renderCount + 1);
-            outputImage.setPixel(x, y, currentPixel.x, currentPixel.y,
-                                 currentPixel.z);
-        }
+        outputImage.setPixel(x, y, incomingLight.x, incomingLight.y,
+                             incomingLight.z);
     }
 }
 
@@ -139,10 +121,20 @@ class Scene {
                                                        Vector3<double>(0.0, -1.0, 0.0),
                                                        Vector3<double>(1.0, 0.0, 0.0));
 
-        // unique_ptr<GlossyMeshFactory> factory = make_unique<GlossyMeshFactory>();
-        // auto sphere = factory->create<Sphere>(Vector3<double>(255.0, 255.0, 0.0),
-        //                                       Vector3<double>(), 1.0);
-        // cout << "is null: " << sphere->geometry->coordinates << endl;
+        // unique_ptr<GlossyMeshFactory> factory = make_unique<LightMeshFactory>();
+        // unique_ptr<MatteMeshFactory> mFactory = make_unique<MatteMeshFactory>();
+        // unique_ptr<LightMeshFactory> lFactory = make_unique<LightMeshFactory>();
+
+        // auto teal = lFactory->create<Sphere>(Vector3<double>(0.0, 255.0, 255.0), Vector3<double>(0.0, 0.0, 0.0), 2.0);
+        // cout << teal->geometry->coordinates << endl;
+        // objects.emplace_back(std::move(teal));
+
+        // auto lightTest = create<Mesh, Sphere, Light>(Vector3<double>(255.0, 255.0, 255.0),
+        //  Vector3<double>(-2.0, 0.0, 0.0), 1.0);
+        // auto teal = create<Mesh, Sphere, Light>(Vector3<double>(0.0, 255.0, 255.0),
+        //                                         Vector3<double>(2.0, 0.0, 0.0), 1.0);
+        // objects.emplace_back(std::move(lightTest));
+        // objects.emplace_back(std::move(teal));
 
         // Triangle t1{Vector3<double>(0.0, 0.0, 0.0),
         //             Vector3<double>(-0.5, -1.0, 0.0),
@@ -156,142 +148,172 @@ class Scene {
         // ComplexGeometry prism(Vector3<double>(0.0, 0.0, 0.0), prismVec);
 
         objects.emplace_back(std::move(pink));
-        // objects.emplace_back(std::move(base));
-        // objects.emplace_back(std::move(green));
-        // objects.emplace_back(std::move(blue));
+        objects.emplace_back(std::move(base));
+        objects.emplace_back(std::move(green));
+        objects.emplace_back(std::move(blue));
         objects.emplace_back(std::move(light));
-        // objects.emplace_back(std::move(light2));
+        objects.emplace_back(std::move(light2));
         // objects.emplace_back(std::move(triangle));
         // objects.emplace_back(std::move(triangle2));
     }
 
     bool render(Image& outputImage, int const& renderCount) {
-        cl_platform_id platform;
-        cl_device_id device;
-        cl_context context;
-        cl_command_queue commands;
+        int imgWidth = outputImage.getWidth();
+        int imgHeight = outputImage.getHeight();
+#if 0
+        cl::Platform platform;
+        cl::Device device;
+        cl::Context context;
+        cl::CommandQueue commands;
 
-        cl_program program;
+        cl::Program program;
         // Kernels
-        cl_kernel rendererKernel;
-        cl_kernel presentKernel;
+        cl::Kernel rendererKernel;
+        cl::Kernel presentKernel;
         // Buffers
-        cl_mem screen_buffer;
-        cl_mem spheres_buffer;
-        cl_mem screen;
+        cl::Buffer screen_buffer;
+        cl::Buffer spheres_buffer;
+        cl::Buffer seed_buffer;
+        cl::Buffer screen;
 
-        std::vector<cl_platform_id> platforms;
+        std::vector<cl::Platform> platforms;
 
         cl_uint length;
         cl_int err;
 
-        clGetPlatformIDs(0, 0, &length);
-        platforms.resize(length);
-        clGetPlatformIDs(platforms.size(), platforms.data(), 0);
+        cl::Platform::get(&platforms);
+        platform = platforms[0];
 
-        for (int i = 0; i < platforms.size(); i++) {
-            std::vector<cl_device_id> devices;
+        std::vector<cl::Device> devices;
+        platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
 
-            clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, 0, 0, &length);
-            devices.resize(length);
-            clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, devices.size(), devices.data(), 0);
-
-            if (devices.size() > 0) {
-                device = devices[0];
-                platform = platforms[i];
-                break;
-            }
+        if (devices.size() > 0) {
+            device = devices[0];
         }
 
-        context = clCreateContext(0, 1, &device, nullptr, nullptr, &err);
-        commands = clCreateCommandQueue(context, device, 0, &err);
+        context = cl::Context(device);
 
         std::ifstream in("../cl_src/gpu.cl");
+        std::ifstream inRandom("../cl_src/random.cl");
         std::stringstream ss;
         std::string temp;
+
+        while (std::getline(inRandom, temp)) {
+            ss << temp << std::endl;
+        }
+        inRandom.close();
 
         while (std::getline(in, temp)) {
             ss << temp << std::endl;
         }
-
         in.close();
 
         std::string src = ss.str();
         const char* c_src = src.c_str();
 
-        int imgWidth = outputImage.getWidth();
-        int imgHeight = outputImage.getHeight();
-
         cl_uint size = imgWidth * imgHeight;
-        screen_buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, size * sizeof(ColorCL), nullptr, &err);
-        spheres_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, clSpheres.size() * sizeof(SphereCL), clSpheres.data(), &err);
+
+        cout << "Starting" << endl;
+
+        auto imageColors = toCL(outputImage);
 
         // get program using ifstream
         // here, c_src is just the result of streaming the source file into a string
-        program = clCreateProgramWithSource(context, 1, &c_src, nullptr, &err);
+        program = cl::Program(context, c_src);
 
-        err = clBuildProgram(program, 0, nullptr, nullptr, nullptr, nullptr);
+        err = program.build({device}, "");
 
-        rendererKernel = clCreateKernel(program, "renderer", &err);
+        if (err != CL_SUCCESS) {
+            char buf[2048];
+            std::cout << "Error: Failed to build program" << std::endl;
+            size_t len = static_cast<size_t>(length);
+            std::cout << buf << std::endl;
+            std::getchar();
+            exit(1);
+        }
 
-        size_t len = clSpheres.size();
+        rendererKernel = cl::Kernel(program, "renderer");
+
         CameraCL cameracl = toCL(camera);
 
-        err = clSetKernelArg(rendererKernel, 0, sizeof(cl_mem), (void*)&screen_buffer);
-        err |= clSetKernelArg(rendererKernel, 1, sizeof(cl_mem), (void*)&spheres_buffer);
-        err |= clSetKernelArg(rendererKernel, 2, sizeof(size_t), (void*)&len);
-        err |= clSetKernelArg(rendererKernel, 3, sizeof(CameraCL), (void*)&cameracl);
+        cl_uint2 seed;
+        seed.s[0] = 3;
+        seed.s[1] = 4;
 
-        size_t globalWorkSize[2] = {
+        size_t len = clSpheres.size();
+
+        ColorCL* output = (ColorCL*)malloc(sizeof(ColorCL) * size);
+
+        screen_buffer = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, size * sizeof(ColorCL), output);
+        spheres_buffer = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, clSpheres.size() * sizeof(SphereCL), clSpheres.data());
+        seed_buffer = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(cl_uint2), &seed);
+        cl::Buffer cam_buffer = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(CameraCL), &cameracl);
+
+        err |= rendererKernel.setArg(0, screen_buffer);
+        err |= rendererKernel.setArg(1, spheres_buffer);
+        err |= rendererKernel.setArg(2, len);
+        err |= rendererKernel.setArg(3, cam_buffer);
+        err |= rendererKernel.setArg(4, seed_buffer);
+
+        if (err != CL_SUCCESS) {
+            cout << "Failed assignment" << endl;
+        }
+        cl::NDRange globalWorkSize = {
             static_cast<size_t>(imgWidth),
             static_cast<size_t>(imgHeight)};
 
-        size_t localWorkSize[2] = {
+        cl::NDRange localWorkSize = {
             16, 16};
 
-        err = clEnqueueNDRangeKernel(commands, rendererKernel, 2, nullptr, globalWorkSize, localWorkSize, 0, nullptr, nullptr);
+        commands = cl::CommandQueue(context, device);
 
+        err |= commands.enqueueNDRangeKernel(rendererKernel, NULL, globalWorkSize, localWorkSize);
+        cout << err << endl;
+
+        std::vector<ColorCL> colors(size);
+        err |= commands.enqueueReadBuffer(screen_buffer, CL_TRUE, 0, colors.size() * sizeof(ColorCL), colors.data());
+        cout << err << endl;
+
+        if (err != CL_SUCCESS) {
+            cout << "Failed enqueueing" << endl;
+        }
         cout << "Rendering..." << endl;
 
-        err = clFinish(commands);
+        err = cl::flush();
+        err = cl::finish();
 
-        // auto numBins = std::thread::hardware_concurrency();
-        // // auto numBins = 1;
-        // auto numPixels = imgWidth * imgHeight;
-        // std::vector<std::pair<unsigned int, unsigned int>> ranges;
-        // std::vector<std::thread> threads;
+        outputImage.updateColorChannels(colors);
+        free(output);
+#else
 
-        // // Segments pixel indices into worker bins
-        // for (unsigned int worker = 0; worker < numBins; worker++) {
-        //     ranges.push_back(std::pair<unsigned int, unsigned int>(
-        //         numPixels * worker / numBins,
-        //         numPixels * (worker + 1) / numBins));
-        // }
+        auto numBins = std::thread::hardware_concurrency();
+        auto numPixels = imgWidth * imgHeight;
+        std::vector<std::pair<unsigned int, unsigned int>> ranges;
+        std::vector<std::thread> threads;
 
-        // // auto resultIdx = 0;
-        // // for (auto& i : ranges) {
-        // //     auto sw = i.first / imgWidth;
-        // //     auto sh = i.first % imgWidth;
-        // //     auto ew = i.second / imgWidth;
-        // //     auto eh = i.second % imgWidth;
-        // //     cout << "[(" << sh << ", " << sw << "), (" << eh << ", " << ew << ")"
-        // //          << ")" << endl;
-        // // }
+        // Segments pixel indices into worker bins
+        for (unsigned int worker = 0; worker < numBins; worker++) {
+            ranges.push_back(std::pair<unsigned int, unsigned int>(
+                numPixels * worker / numBins,
+                numPixels * (worker + 1) / numBins));
+        }
 
-        // // For each range of indices, run the trace for each
-        // for (auto& r : ranges) {
-        //     auto si = r.first;
-        //     auto ei = r.second;
-        //     threads.push_back(
-        //         std::thread([this, si, ei, &imgWidth, &imgHeight, &outputImage, renderCount]() {
-        //             trace(imgWidth, imgHeight, si, ei, camera, objects, outputImage, renderCount);
-        //         }));
-        // }
+        // For each range of indices, run the trace for each
+        for (auto& r : ranges) {
+            auto si = r.first;
+            auto ei = r.second;
+            threads.push_back(
+                std::thread([this, si, ei, &imgWidth, &imgHeight, &outputImage, renderCount]() {
+                    trace(imgWidth, imgHeight, si, ei, camera, objects, outputImage, renderCount);
+                }));
+        }
 
-        // for (auto& t : threads) {
-        //     t.join();
-        // }
+        for (auto& t : threads) {
+            t.join();
+        }
+#endif
         cout << "Finished." << endl;
+
         return true;
     }
 
@@ -317,6 +339,7 @@ class Scene {
         }
 
         camera.setPosition(cameraPos);
+        cout << camera.getPosition() << endl;
         camera.updateCameraGeometry();
 
         return true;

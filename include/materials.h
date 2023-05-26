@@ -6,16 +6,6 @@
 #include "variadics/variadic_examples.h"
 #include "vector3.h"
 
-/*
-Translucence
-Transparence
-Opacity
-Reflectivity
-Glossiness
-*/
-
-// TODO: implement visitor pattern for materials (visit = ray bounce)
-
 namespace mpcs51045 {
 
 class Material {

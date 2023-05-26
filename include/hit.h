@@ -26,13 +26,12 @@ struct HitData {
 
 HitData sphereIntersect(Ray const& ray, unique_ptr<Geometry> const& geom) {
     HitData result;
+    result.didHit = false;
     Sphere* sphere = dynamic_cast<Sphere*>(geom.get());
-    // cout << "pass" << (sphere == nullptr) << endl;
     Vector3<double> offsetRayPos = ray.position - sphere->coordinates;
     Vector3<double> dir = ray.direction;
     dir.normalize();
 
-    // cout << "Coords: " << sphere.coordinates << ", Rad: " << sphere.radius << endl;
     double a = Vector3<double>::dot(dir, dir);
     double b = 2.0 * Vector3<double>::dot(offsetRayPos, dir);
     double c = Vector3<double>::dot(offsetRayPos, offsetRayPos) -
@@ -73,9 +72,6 @@ std::pair<HitData, int> getClosestHit(Ray& cameraRay,
     HitData closestHit;
     HitData currentHit;
     int closestIndex = -1;
-    // Glossy g{Vector3<double>{255.0, 0.0, 255.0}};
-    // Material& closestMat = g;
-    // unique_ptr<Material> closestMat = make_unique<Glossy>(Glossy{Vector3<double>{0.0, 0.0, 0.0}});
     closestHit.distance = INFINITY;
     // Test for intersections with all objects (replace with visitor in future)
     for (int i = 0; i < objects.size(); i++) {
@@ -99,7 +95,6 @@ Vector3<double> handleHit(Ray& cameraRay,
                           HitData const& hitData) {
     Vector3<double> color = material->color();
 
-    // cout << "Ray Dir: " << cameraRay.direction << endl;
     // Move ray
     cameraRay.position = hitData.hitPoint;
     Vector3<double> diffuseDir = randomReboundDirection(hitData.hitNormal) + hitData.hitNormal;
@@ -108,22 +103,11 @@ Vector3<double> handleHit(Ray& cameraRay,
     bool isSpecular = material->reflectivity() >= getRandomProbValue();
     cameraRay.direction = Vector3<double>::interpolate(diffuseDir, specularDir, material->smoothness() * isSpecular);
     cameraRay.direction.normalize();
-    // cout << "New Direction: " << cameraRay.direction << endl;
-
-    // cout << "Material Color: " << color << endl;
-    // color /= 255.0;
     Vector3<double> emittedLight = color * material->luminosity();
 
-    // cout << "Emitted Light: " << emittedLight << endl;
-    // cout << "Luminosity: " << material->luminosity() << endl;
     Vector3<double> incomingLight = (emittedLight * cameraRay.color) / 255.0;
-    // incomingLight *= 255.0;
-    // cout << "Incoming Light: " << incomingLight << endl;
-    // cout << "Old Ray Color: " << cameraRay.color << endl;
     Vector3<double> reflectivityColor = Vector3<double>::interpolate(color, Vector3<double>(255.0, 255.0, 255.0), isSpecular);
-    // cout << "Reflective Color: " << reflectivityColor << endl;
     cameraRay.color = (cameraRay.color * reflectivityColor) / 255.0;
-    // cout << "New Ray Color: " << cameraRay.color << endl;
 
     return incomingLight;
 }
