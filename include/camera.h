@@ -1,6 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include "opencl_struct.h"
 #include "ray.h"
 #include "vector3.h"
 
@@ -126,6 +127,16 @@ class Camera {
     Vector3<double> v;
     Vector3<double> center;
 };
+
+CameraCL toCL(Camera &camera) {
+    auto cameraPos = camera.getPosition();
+    auto u = camera.getU();
+    auto v = camera.getV();
+    auto center = camera.getCenter();
+
+    CameraCL result = {toCL(cameraPos), toCL(u), toCL(v), toCL(center)};
+    return result;
+}
 
 }  // namespace mpcs51045
 

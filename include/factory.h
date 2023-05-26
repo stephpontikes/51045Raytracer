@@ -46,7 +46,6 @@ struct concrete_factory<abstract_factory<AbstractTypes...>, ConcreteTypes...>
                               AbstractTypes, ConcreteTypes>... {
 };
 
-// todo: arguments for mesh factory types
 template <template <class, class> class T, typename M, typename G>
 struct mesh_creator {
     // inherited methods are not namespaced if they are not called from a specific type;
@@ -64,7 +63,9 @@ struct mesh_creator<T, M, G(Ts...)> {
     // them into the derived class namespace
     virtual unique_ptr<T<Geometry, Material>> doCreate(TT<G> &&, TT<M> &&, Vector3<double> const &color, Ts &&...ts) {
         // figure out how to get proper constructor call
-        return make_unique<T<G, M>>(color, std::forward<Ts>(ts)...);
+        G geometry(std::forward<Ts>(ts)...);
+        M material(color);
+        return make_unique<T<G, M>>(geometry, material);
     }
 };
 

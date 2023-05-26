@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "materials.h"
+#include "opencl_struct.h"
 #include "variadics/variadic_examples.h"
 #include "vector3.h"
 
@@ -77,18 +78,29 @@ class ComplexGeometry : public Geometry {
     std::vector<Triangle> triangles;
 };
 
-// Visit method calls visit method on each geometry in mesh
 template <typename... Ts>
 class MultipleGeometry : public Ts... {
    public:
     // use overloading/type tags in base classes to get proper onhit behavior for each geometry
-    // discuss w logan, possibly better design philosophies exist. but this uses advanced variadics
     std::vector<std::unique_ptr<Geometry>> geometries;
 };
 
 // using AbstractGeometryFactory = mpcs51045::abstract_factory<Geometry>;
 // using GeometryFactory = mpcs51045::concrete_factory<AbstractGeometryFactory,
 //                                                     Sphere, Triangle>;
+
+SphereCL toCL(Sphere& geom, Material& mat) {
+    return SphereCL{
+        toCL(geom.coordinates), static_cast<cl_float>(geom.radius),
+        toCL(mat.color()),
+        static_cast<cl_float>(mat.reflectivity()),
+        static_cast<cl_float>(mat.luminosity()),
+        static_cast<cl_float>(mat.smoothness())};
+}
+
+TriangleCL toCL(Triangle& geom) {
+    return TriangleCL{toCL(geom.coordinates), toCL(geom.v1), toCL(geom.v2), toCL(geom.v3)};
+}
 
 using geometry_types = typelist<Geometry, Sphere, Triangle>;
 
